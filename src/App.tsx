@@ -1,15 +1,17 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import {
 	Introduction,
 	GettingStarted,
 	Navbar,
-	HelpDocs,
+	Documents,
 	ResultPage,
 } from './fragments'
-import { Progress, useProgressState } from './stores'
+import * as Rules from './rules'
+import { Progress, useProgressState, useChildWindow } from './stores'
+import { useEvent } from 'react-use'
 
 function Debugger() {
-	const [,setProgress] = useProgressState()
+	const [, setProgress] = useProgressState()
 
 	return (
 		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
@@ -32,13 +34,30 @@ function Debugger() {
 }
 
 function App() {
+	const [, setProgress] = useProgressState()
+	const { close } = useChildWindow()
+
+	useEvent(
+		'message',
+		useCallback(
+			({ data, origin }: MessageEvent) => {
+				if (origin === Rules.jwxtOrigin) {
+					console.log(data)
+					setProgress(Progress.Failure)
+					close()
+				}
+			},
+			[close, setProgress]
+		)
+	)
+
 	return (
 		<>
 			<Debugger />
 			<Navbar />
 			<Introduction />
 			<GettingStarted />
-			<HelpDocs />
+			<Documents />
 			<ResultPage />
 		</>
 	)

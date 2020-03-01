@@ -2,7 +2,13 @@ import React, { CSSProperties } from 'react'
 import { useLockBodyScroll } from 'react-use'
 import { IntroductionImageSources } from './fragments.assets'
 import styles from './fragments.module.css'
-import { useProgressState, Progress, useHelpDocsState } from './stores'
+import {
+	useProgressState,
+	Progress,
+	useDocsState,
+	useChildWindow,
+} from './stores'
+import * as Rules from './rules'
 
 function Section({
 	children,
@@ -22,7 +28,7 @@ function IntroductionImage({ id }: { id: number }) {
 }
 
 export function Navbar() {
-	const [, setHelpDocs] = useHelpDocsState()
+	const [, setDocs] = useDocsState()
 	const [, setProgress] = useProgressState()
 
 	return (
@@ -31,16 +37,16 @@ export function Navbar() {
 				<ul>
 					<li
 						onClick={() => {
-							setHelpDocs(false)
+							setDocs(false)
 						}}
 					>
 						介绍
 					</li>
-					<li>快速上手</li>
+					<li>立即使用</li>
 					<li
 						onClick={() => {
 							setProgress(Progress.Idle)
-							setHelpDocs(true)
+							setDocs(true)
 						}}
 					>
 						帮助文档
@@ -105,15 +111,37 @@ function CodeCopier() {
 	)
 }
 
-function Opener() {
+function ChildWindowOpener() {
+	const { window, open } = useChildWindow()
+
 	return (
 		<button
 			onClick={() => {
-				window.open('https://jwxt.scnu.edu.cn/')
+				open(Rules.jwxtUrl)
 			}}
+			disabled={Boolean(window)}
 		>
 			打开教务处官网
 		</button>
+	)
+}
+
+export function TroubleOnGettingStarted() {
+	const { window, close } = useChildWindow()
+
+	return (
+		<details hidden={!window}>
+			<summary>遇到问题吗？</summary>
+			<button>TODO</button>
+			{/* TODO */}
+			<button
+				onClick={() => {
+					close()
+				}}
+			>
+				重试
+			</button>
+		</details>
 	)
 }
 
@@ -124,7 +152,8 @@ export function GettingStarted() {
 			<CodeCopier />
 			<br />
 			打开教务信息网，在地址栏内输入这串代码，注意 javascript:
-			<Opener />
+			<ChildWindowOpener />
+			<TroubleOnGettingStarted />
 			<br />
 			我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
 		</Section>
@@ -156,8 +185,8 @@ export function ScreenPage({
 	)
 }
 
-export function HelpDocs() {
-	const [show] = useHelpDocsState()
+export function Documents() {
+	const [show] = useDocsState()
 
 	return (
 		<ScreenPage {...{ show }}>
