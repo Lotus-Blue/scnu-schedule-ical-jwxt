@@ -19,6 +19,29 @@ function IntroductionImage({ id }: { id: number }) {
 	)
 }
 
+export function Navbar() {
+	return (
+		<header>
+			<nav>
+				<ul>
+					<li>快速上手</li>
+					<li>帮助文档</li>
+					<li>反馈</li>
+					<li>
+						<a href="https://i.scnu.edu.cn/" target="_about">
+							关于我们
+						</a>
+					</li>
+				</ul>
+			</nav>
+		</header>
+	)
+}
+
+export function HelpDocs() {
+	return <article>帮助</article>
+}
+
 export function Introduction() {
 	return (
 		<>
@@ -86,6 +109,14 @@ export function GettingStarted() {
 			<Opener />
 			<br />
 			我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
+		</Section>
+	)
+}
+
+export function ResultPage() {
+	return (
+		<Section style={{ background: '#f33' }}>
+			<h1>结果页面</h1>
 		</Section>
 	)
 }
