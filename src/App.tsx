@@ -3,7 +3,7 @@ import {
 	Introduction,
 	GettingStarted,
 	Navbar,
-	Documents,
+	Document,
 	ResultPage,
 } from './fragments'
 import * as Rules from './rules'
@@ -57,7 +57,7 @@ function App() {
 			<Navbar />
 			<Introduction />
 			<GettingStarted />
-			<Documents />
+			<Document />
 			<ResultPage />
 		</>
 	)

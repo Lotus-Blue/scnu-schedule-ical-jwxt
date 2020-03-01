@@ -20,17 +20,17 @@ export function useProgressState(): [Progress, (value: Progress) => void] {
 	]
 }
 
-const [useDocsStore] = create(set => ({
+const [useDocumentStore] = create(set => ({
 	value: false,
 	set: (value: boolean) => {
 		set({ value })
 	},
 }))
 
-export function useDocsState(): [boolean, (value: boolean) => void] {
+export function useDocumentState(): [boolean, (value: boolean) => void] {
 	return [
-		useDocsStore(state => state.value),
-		useDocsStore(state => state.set),
+		useDocumentStore(state => state.value),
+		useDocumentStore(state => state.set),
 	]
 }
 

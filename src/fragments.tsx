@@ -1,26 +1,31 @@
-import React, { CSSProperties } from 'react'
-import { useLockBodyScroll } from 'react-use'
+import React, { CSSProperties, useState } from 'react'
+import { useLockBodyScroll, useAsyncFn } from 'react-use'
 import { IntroductionImageSources } from './fragments.assets'
-import styles from './fragments.module.css'
+import Styles from './fragments.module.css'
 import {
 	useProgressState,
 	Progress,
-	useDocsState,
+	useDocumentState,
 	useChildWindow,
 } from './stores'
 import * as Rules from './rules'
+import ReactDOM from 'react-dom'
+import unified from 'unified'
+import remarkParse from 'remark-parse'
+import remarkToReact from 'remark-react'
+import remarkSlug from 'remark-slug'
 
 function Section({
 	children,
 	style,
 }: React.PropsWithChildren<{ style?: CSSProperties }>) {
-	return <section className={styles.section} {...{ children, style }} />
+	return <section className={Styles.Section} {...{ children, style }} />
 }
 
 function IntroductionImage({ id }: { id: number }) {
 	return (
 		<img
-			className={styles.displayImage}
+			className={Styles.DisplayImage}
 			alt="展示效果"
 			src={IntroductionImageSources[id - 1]}
 		/>
@@ -28,7 +33,7 @@ function IntroductionImage({ id }: { id: number }) {
 }
 
 export function Navbar() {
-	const [, setDocs] = useDocsState()
+	const [, setDocument] = useDocumentState()
 	const [, setProgress] = useProgressState()
 
 	return (
@@ -37,7 +42,7 @@ export function Navbar() {
 				<ul>
 					<li
 						onClick={() => {
-							setDocs(false)
+							setDocument(false)
 						}}
 					>
 						介绍
@@ -46,7 +51,7 @@ export function Navbar() {
 					<li
 						onClick={() => {
 							setProgress(Progress.Idle)
-							setDocs(true)
+							setDocument(true)
 						}}
 					>
 						帮助文档
@@ -166,31 +171,53 @@ export function ScreenPage({
 }: React.PropsWithChildren<{ show: boolean }>) {
 	useLockBodyScroll(show)
 
-	return (
-		<div
-			style={{
-				display: show ? 'initial' : 'none',
-				position: 'fixed',
-				top: 0,
-				right: 0,
-				bottom: 0,
-				left: 0,
-				zIndex: 1,
-				background: 'white',
-			}}
-		>
-			<Navbar></Navbar>
-			{children}
-		</div>
+	return ReactDOM.createPortal(
+		<div hidden={!show}>
+			<div className={Styles.ScreenPage}>
+				<Navbar></Navbar>
+				{children}
+			</div>
+		</div>,
+		document.body
 	)
 }
 
-export function Documents() {
-	const [show] = useDocsState()
+export function Document() {
+	const [show] = useDocumentState()
+	const [beforeFetching, setBeforeFetching] = useState(true)
+	const [{ loading, value: raw }, fetchDocument] = useAsyncFn(
+		async (): Promise<string> => {
+			return await (await fetch(Rules.documentPath)).text()
+		}
+	)
+
+	if (show && beforeFetching) {
+		fetchDocument()
+		setBeforeFetching(false)
+	}
 
 	return (
 		<ScreenPage {...{ show }}>
-			<article>帮助</article>
+			{loading ? (
+				'加载中'
+			) : raw ? (
+				<div className={Styles.DocumentContainer}>
+					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
+						<h1>目录</h1>
+					</nav>
+					<article className={Styles.Article}>
+						{
+							unified()
+								.use(remarkParse)
+								.use(remarkSlug)
+								.use(remarkToReact)
+								.processSync(raw).contents
+						}
+					</article>
+				</div>
+			) : (
+				'网络错误'
+			)}
 		</ScreenPage>
 	)
 }
