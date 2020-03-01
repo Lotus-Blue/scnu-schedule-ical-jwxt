@@ -1,0 +1,9 @@
+.section {
+	height: 61.8vw;
+	box-sizing: border-box;
+	text-align: center;
+}
+
+.displayImage {
+	max-height: 380px;
+}
