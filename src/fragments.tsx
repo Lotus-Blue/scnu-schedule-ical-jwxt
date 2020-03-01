@@ -1,6 +1,7 @@
 import React, { CSSProperties } from 'react'
 import { IntroductionImageSources } from './fragments.assets'
 import styles from './fragments.module.css'
+import { useProgressState, Progress, useProgressSetter } from './stores'
 
 function Section({
 	children,
@@ -38,10 +39,6 @@ export function Navbar() {
 	)
 }
 
-export function HelpDocs() {
-	return <article>帮助</article>
-}
-
 export function Introduction() {
 	return (
 		<>
@@ -64,7 +61,10 @@ export function Introduction() {
 				<h1>还有……</h1>
 				<p>
 					将课表导入日历以后，Siri, Cortana
-					这些智能助理也能派上用场啦！更多惊喜，待您发现 😋
+					这些智能助理也能派上用场啦！更多惊喜，待您发现
+					<span role="img" aria-label="开心">
+						😋
+					</span>
 				</p>
 				<div>
 					<IntroductionImage id={7} />
@@ -81,7 +81,7 @@ export function Introduction() {
 function CodeCopier() {
 	return (
 		<>
-			<input value={'123'} />
+			<input value={'123'} readOnly />
 			<button>复制</button>
 		</>
 	)
@@ -113,10 +113,43 @@ export function GettingStarted() {
 	)
 }
 
-export function ResultPage() {
+export function ScreenPage({
+	show,
+	children,
+}: React.PropsWithChildren<{ show: boolean }>) {
+	return <div style={{ display: show ? 'initial' : 'none' }}>{children}</div>
+}
+
+export function HelpDocs() {
 	return (
-		<Section style={{ background: '#f33' }}>
-			<h1>结果页面</h1>
-		</Section>
+		<ScreenPage show>
+			<article>帮助</article>
+		</ScreenPage>
+	)
+}
+
+export function ResultPage() {
+	const progress = useProgressState()
+	const setProgress = useProgressSetter()
+
+	return (
+		<ScreenPage show={progress !== Progress.Idle}>
+			<div
+				style={
+					progress === Progress.Success
+						? { background: '#0e3' }
+						: { background: '#e33' }
+				}
+			>
+				<h1>结果页面</h1>
+				<button
+					onClick={() => {
+						setProgress(Progress.Idle)
+					}}
+				>
+					完成
+				</button>
+			</div>
+		</ScreenPage>
 	)
 }
