@@ -6,13 +6,13 @@ import {
 	HelpDocs,
 	ResultPage,
 } from './fragments'
-import { Progress, useProgressSetter } from './stores'
+import { Progress, useProgressState } from './stores'
 
 function Debugger() {
-	const setProgress = useProgressSetter()
+	const [,setProgress] = useProgressState()
 
 	return (
-		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1 }}>
+		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
 			<button
 				onClick={() => {
 					setProgress(Progress.Success)
@@ -38,8 +38,8 @@ function App() {
 			<Navbar />
 			<Introduction />
 			<GettingStarted />
-			<ResultPage />
 			<HelpDocs />
+			<ResultPage />
 		</>
 	)
 }

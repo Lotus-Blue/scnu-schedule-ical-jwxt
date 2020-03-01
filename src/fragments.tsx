@@ -1,7 +1,8 @@
 import React, { CSSProperties } from 'react'
+import { useLockBodyScroll } from 'react-use'
 import { IntroductionImageSources } from './fragments.assets'
 import styles from './fragments.module.css'
-import { useProgressState, Progress, useProgressSetter } from './stores'
+import { useProgressState, Progress, useHelpDocsState } from './stores'
 
 function Section({
 	children,
@@ -21,12 +22,29 @@ function IntroductionImage({ id }: { id: number }) {
 }
 
 export function Navbar() {
+	const [, setHelpDocs] = useHelpDocsState()
+	const [, setProgress] = useProgressState()
+
 	return (
 		<header>
 			<nav>
 				<ul>
+					<li
+						onClick={() => {
+							setHelpDocs(false)
+						}}
+					>
+						介绍
+					</li>
 					<li>快速上手</li>
-					<li>帮助文档</li>
+					<li
+						onClick={() => {
+							setProgress(Progress.Idle)
+							setHelpDocs(true)
+						}}
+					>
+						帮助文档
+					</li>
 					<li>反馈</li>
 					<li>
 						<a href="https://i.scnu.edu.cn/" target="_about">
@@ -117,20 +135,39 @@ export function ScreenPage({
 	show,
 	children,
 }: React.PropsWithChildren<{ show: boolean }>) {
-	return <div style={{ display: show ? 'initial' : 'none' }}>{children}</div>
+	useLockBodyScroll(show)
+
+	return (
+		<div
+			style={{
+				display: show ? 'initial' : 'none',
+				position: 'fixed',
+				top: 0,
+				right: 0,
+				bottom: 0,
+				left: 0,
+				zIndex: 1,
+				background: 'white',
+			}}
+		>
+			<Navbar></Navbar>
+			{children}
+		</div>
+	)
 }
 
 export function HelpDocs() {
+	const [show] = useHelpDocsState()
+
 	return (
-		<ScreenPage show>
+		<ScreenPage {...{ show }}>
 			<article>帮助</article>
 		</ScreenPage>
 	)
 }
 
 export function ResultPage() {
-	const progress = useProgressState()
-	const setProgress = useProgressSetter()
+	const [progress, setProgress] = useProgressState()
 
 	return (
 		<ScreenPage show={progress !== Progress.Idle}>
