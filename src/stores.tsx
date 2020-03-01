@@ -27,7 +27,7 @@ const [useDocumentStore] = create(set => ({
 	},
 }))
 
-export function useDocumentState(): [boolean, (value: boolean) => void] {
+export function useDocumentShowState(): [boolean, (value: boolean) => void] {
 	return [
 		useDocumentStore(state => state.value),
 		useDocumentStore(state => state.set),

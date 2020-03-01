@@ -1,19 +1,16 @@
 import React, { CSSProperties, useState } from 'react'
-import { useLockBodyScroll, useAsyncFn } from 'react-use'
+import { useLockBodyScroll, useAsync } from 'react-use'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
 import {
 	useProgressState,
 	Progress,
-	useDocumentState,
+	useDocumentShowState,
 	useChildWindow,
 } from './stores'
 import * as Rules from './rules'
 import ReactDOM from 'react-dom'
-import unified from 'unified'
-import remarkParse from 'remark-parse'
-import remarkToReact from 'remark-react'
-import remarkSlug from 'remark-slug'
+import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 
 function Section({
 	children,
@@ -33,7 +30,7 @@ function IntroductionImage({ id }: { id: number }) {
 }
 
 export function Navbar() {
-	const [, setDocument] = useDocumentState()
+	const [, setDocument] = useDocumentShowState()
 	const [, setProgress] = useProgressState()
 
 	return (
@@ -183,40 +180,42 @@ export function ScreenPage({
 }
 
 export function Document() {
-	const [show] = useDocumentState()
-	const [beforeFetching, setBeforeFetching] = useState(true)
-	const [{ loading, value: raw }, fetchDocument] = useAsyncFn(
-		async (): Promise<string> => {
-			return await (await fetch(Rules.documentPath)).text()
-		}
-	)
+	const [content, setContent] = useState<ContentWithTocNodesSet | undefined>()
+	const [error, setError] = useState(false)
+	const [show] = useDocumentShowState()
 
-	if (show && beforeFetching) {
-		fetchDocument()
-		setBeforeFetching(false)
-	}
-
-	return (
-		<ScreenPage {...{ show }}>
-			{loading ? (
-				'加载中'
-			) : raw ? (
-				<div className={Styles.DocumentContainer}>
-					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
-						<h1>目录</h1>
-					</nav>
-					<article className={Styles.Article}>
-						{
-							unified()
+	useAsync(async () => {
+		if (show && !content) {
+			try {
+				setContent(
+					MarkdownParser.convert(await (await fetch(Rules.documentPath)).text())
+				)
+			} catch (error) {
+				setError(true)
+				console.error(error)
+			}
+			/* 	unified()
 								.use(remarkParse)
 								.use(remarkSlug)
 								.use(remarkToReact)
-								.processSync(raw).contents
-						}
-					</article>
-				</div>
-			) : (
+								.processSync(raw).contents */
+		}
+	}, [show, content])
+
+	return (
+		<ScreenPage {...{ show }}>
+			{error ? (
 				'网络错误'
+			) : !content ? (
+				'加载中'
+			) : (
+				<div className={Styles.DocumentContainer}>
+					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
+						<h1>目录</h1>
+						{content.toc}
+					</nav>
+					<article className={Styles.Article} children={content.body} />
+				</div>
 			)}
 		</ScreenPage>
 	)
