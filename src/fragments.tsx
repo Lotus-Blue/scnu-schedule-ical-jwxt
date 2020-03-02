@@ -8,6 +8,7 @@ import {
 	Progress,
 	useDocumentShowState,
 	useChildWindow,
+	useBlobUrlStore,
 } from './stores'
 import * as Rules from './rules'
 import ReactDOM from 'react-dom'
@@ -124,7 +125,7 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 					ref={textAreaRef}
 					style={{ resize: 'none', color: 'black' }}
 					rows={3}
-					children={code}
+					value={code}
 					onClick={() => {
 						textAreaRef.current?.select()
 					}}
@@ -150,15 +151,16 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 function ChildWindowOpener() {
 	const { window, open } = useChildWindow()
 
-	return (
-		<button
-			onClick={() => {
-				open(Rules.jwxtUrl)
-			}}
-			disabled={Boolean(window)}
-		>
-			打开教务处官网
-		</button>
+	return window ? null : (
+		<div>
+			<Button
+				onClick={() => {
+					open(Rules.jwxtUrl)
+				}}
+			>
+				打开教务处官网
+			</Button>
+		</div>
 	)
 }
 
@@ -168,7 +170,7 @@ export function TroubleOnGettingStarted() {
 	return (
 		<details hidden={!window}>
 			<summary>遇到问题吗？</summary>
-			<button>TODO</button>
+			已知在某些浏览器可能会把前缀 javascript: 删掉，请补上
 			{/* TODO */}
 			<button
 				onClick={() => {
@@ -194,7 +196,7 @@ export function GettingStarted() {
 			/>
 			<br />
 			<div hidden={!copyed}>
-				打开教务信息网，在地址栏内输入这串代码，注意 javascript:
+				打开教务信息网，在地址栏内输入这串代码（微信内置浏览器无法使用）
 				<ChildWindowOpener />
 			</div>
 			<TroubleOnGettingStarted />
@@ -267,6 +269,7 @@ export function Document() {
 
 export function ResultPage() {
 	const [progress, setProgress] = useProgressState()
+	const url = useBlobUrlStore(state => state.url)
 
 	return (
 		<ScreenPage show={progress !== Progress.Idle}>
@@ -274,13 +277,18 @@ export function ResultPage() {
 				style={{ background: '#0e3' }}
 				hidden={progress !== Progress.Success}
 			>
-				<h1>结果页面</h1>
+				<h1>恭喜！你的精品日历已做好</h1>
+				<div>
+					<a href={url ?? '#'} download="测试日历.ics">
+						<Button size="large">下载日历</Button>
+					</a>
+				</div>
 				<button
 					onClick={() => {
 						setProgress(Progress.Idle)
 					}}
 				>
-					完成
+					返回
 				</button>
 			</div>
 			<div

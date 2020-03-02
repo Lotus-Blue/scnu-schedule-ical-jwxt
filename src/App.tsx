@@ -8,7 +8,7 @@ import {
 	Footer,
 } from './fragments'
 import * as Rules from './rules'
-import { useProgressStore, useChildWindow, ChildWindowStore } from './stores'
+import { useProgressStore, ProgressStore, ChildWindowStore } from './stores'
 import 'antd/dist/antd.css'
 import { useEventListener } from '@umijs/hooks'
 import generator, { CourseDataTransformer } from './generator'
@@ -30,10 +30,17 @@ function Debugger() {
 }
 
 function App() {
+	const setFailure = useProgressStore(state => state.toFailure)
+
 	useEventListener('message', ({ data, origin }: MessageEvent) => {
 		if (origin === Rules.jwxtOrigin) {
-			console.log(generator((data as any[]).map(CourseDataTransformer)))
 			ChildWindowStore.getState().close()
+			try {
+				const calendar = generator((data as any[]).map(CourseDataTransformer))
+				ProgressStore.getState().success(calendar)
+			} catch (error) {
+				setFailure({ code: error.toString() })
+			}
 		}
 	})
 
