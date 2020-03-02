@@ -110,7 +110,8 @@ export function Introduction() {
 
 const scratchScript =
 	// eslint-disable-next-line
-	'javascript:' + Rules.scratchScript.replace(/^\s+/g, '').replace(/\n/g, '')
+	'javascript:' +
+	Rules.scratchScript.replace(/^[\s\t]+/g, '').replace(/\n?\r?/g, '')
 
 const { Content } = Layout
 
@@ -128,6 +129,7 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 					value={code}
 					onClick={() => {
 						textAreaRef.current?.select()
+						onCopy?.()
 					}}
 				/>
 			</div>
@@ -165,25 +167,21 @@ function ChildWindowOpener() {
 }
 
 export function TroubleOnGettingStarted() {
-	const { window, close } = useChildWindow()
-
 	return (
-		<details hidden={!window}>
+		<details style={{ paddingTop: '1rem' }}>
 			<summary>遇到问题吗？</summary>
-			已知在某些浏览器可能会把前缀 javascript: 删掉，请补上
+			已知在某些浏览器可能会把前缀
+			<code>javascript:</code>
+			去掉，请补上后粘贴
+			<br />
+			一些出于安全考虑，禁用 javascript url 的浏览器也无法使用
 			{/* TODO */}
-			<button
-				onClick={() => {
-					close()
-				}}
-			>
-				重试
-			</button>
 		</details>
 	)
 }
 
 export function GettingStarted() {
+	const { close } = useChildWindow()
 	const [copyed, setCopyed] = useState(false)
 
 	return (
@@ -196,12 +194,24 @@ export function GettingStarted() {
 			/>
 			<br />
 			<div hidden={!copyed}>
-				打开教务信息网，在地址栏内输入这串代码（微信内置浏览器无法使用）
+				打开教务信息网，登陆后，在地址栏内输入这串代码
+				<br />
+				（建议使用电脑版的 Chrome 浏览器/老板 Firefox 完成操作）
 				<ChildWindowOpener />
 			</div>
 			<TroubleOnGettingStarted />
+			<div>
+				<Button
+					onClick={() => {
+						close()
+					}}
+				>
+					重试
+				</Button>
+			</div>
 			<br />
 			我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
+			<div style={{ height: '3rem' }} />
 		</Section>
 	)
 }

@@ -23,6 +23,7 @@ export const firstMonday = '2020-03-02'
 export const scratchScript =
 	`
 (async domain => {
+	try{
   const form_data = new FormData();
   form_data.append("xnm", "2019");
   form_data.append("xqm", "12");
@@ -36,6 +37,8 @@ export const scratchScript =
     ).json()
 	).kbList;
 	opener.postMessage(data,domain);
+	setTimeout(()=>{alert("先回到日历导出窗口，点击重试按钮。然后再来一次")},0)
+	}catch{setTimeout(()=>{alert("不是在这个窗口输入，重新试试。")},0)}
 })
 ` + `('${domain}')`
 export enum Campus {
