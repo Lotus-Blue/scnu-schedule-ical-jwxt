@@ -8,6 +8,7 @@ import {
 	Progress,
 	useDocumentShowState,
 	useChildWindow,
+	useBlobUrlStore,
 } from './stores'
 import * as Rules from './rules'
 import ReactDOM from 'react-dom'
@@ -124,7 +125,7 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 					ref={textAreaRef}
 					style={{ resize: 'none', color: 'black' }}
 					rows={3}
-					children={code}
+					value={code}
 					onClick={() => {
 						textAreaRef.current?.select()
 					}}
@@ -267,6 +268,7 @@ export function Document() {
 
 export function ResultPage() {
 	const [progress, setProgress] = useProgressState()
+	const url = useBlobUrlStore(state => state.url)
 
 	return (
 		<ScreenPage show={progress !== Progress.Idle}>
@@ -275,12 +277,17 @@ export function ResultPage() {
 				hidden={progress !== Progress.Success}
 			>
 				<h1>结果页面</h1>
+				<div>
+					<a href={url ?? '#'} download="测试日历.ics">
+						<Button size="large">下载日历</Button>
+					</a>
+				</div>
 				<button
 					onClick={() => {
 						setProgress(Progress.Idle)
 					}}
 				>
-					完成
+					返回
 				</button>
 			</div>
 			<div

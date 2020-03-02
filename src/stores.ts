@@ -1,10 +1,21 @@
 import create, { UseStore, StoreApi } from 'zustand'
+import { ICalCalendar } from 'ical-generator'
+
+declare module 'ical-generator' {
+	interface ICalCalendar {
+		/** 只在浏览器中存在
+		 * @see 包源码 */
+		toBlob(): Blob
+	}
+}
 
 export enum Progress {
 	Idle,
 	Success,
 	Failure,
 }
+
+type TypeOfStore<T> = [UseStore<T>, StoreApi<T>]
 
 type FailResult = {
 	title?: string
@@ -20,11 +31,28 @@ export function useFailResult() {
 	}
 }
 
-type Temp = {
-	progress: Progress
+type BlobUrlStore = {
+	url: null | string
+	storeBlob: (_: Blob) => void
 }
 
-export const [useProgressStore] = create((set, get) => ({
+export const [useBlobUrlStore, BlobUrlStore] = create((set, get) => ({
+	url: null,
+	storeBlob(blob) {
+		const { url } = get()
+		if (url) URL.revokeObjectURL(url)
+		set({ url: URL.createObjectURL(blob) })
+	},
+})) as TypeOfStore<BlobUrlStore>
+
+type ProgressStore = {
+	progress: Progress
+	set: (_: Progress) => void
+	toFailure: (_?: FailResult) => void
+	success: (_: ICalCalendar) => void
+}
+
+export const [useProgressStore, ProgressStore] = create((set, get) => ({
 	progress: Progress.Idle,
 	set: progress => {
 		set({ progress })
@@ -33,14 +61,11 @@ export const [useProgressStore] = create((set, get) => ({
 		FailResultStore.setState(result)
 		set({ progress: Progress.Failure })
 	},
-})) as [
-	UseStore<{
-		progress: Progress
-		set: (_: Progress) => void
-		toFailure: (_?: FailResult) => void
-	}>,
-	unknown
-]
+	success(calendar) {
+		BlobUrlStore.getState().storeBlob(calendar.toBlob())
+		set({ progress: Progress.Success })
+	},
+})) as TypeOfStore<ProgressStore>
 
 export function useProgressState() {
 	return [
@@ -68,7 +93,7 @@ export function useDocumentShowState(): [boolean, (value: boolean) => void] {
 }
 
 type ChildWindow = {
-	window: Window | null
+	window: null | Window
 	open: (_: string) => void
 	close: () => void
 }
@@ -82,7 +107,7 @@ const [useChildWindowStore, ChildWindowStore] = create((set, get) => ({
 		get().window?.close()
 		set({ window: undefined })
 	},
-})) as [UseStore<ChildWindow>, StoreApi<ChildWindow>]
+})) as TypeOfStore<ChildWindow>
 
 export { ChildWindowStore }
 
