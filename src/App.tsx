@@ -9,6 +9,7 @@ import {
 import * as Rules from './rules'
 import { Progress, useProgressState, useChildWindow } from './stores'
 import { useEvent } from 'react-use'
+import generator, { CourseDataTransformer } from './generator'
 
 function Debugger() {
 	const [, setProgress] = useProgressState()
@@ -42,8 +43,8 @@ function App() {
 		useCallback(
 			({ data, origin }: MessageEvent) => {
 				if (origin === Rules.jwxtOrigin) {
-					console.log(data)
-					setProgress(Progress.Failure)
+					console.log(generator((data as any[]).map(CourseDataTransformer)))
+
 					close()
 				}
 			},

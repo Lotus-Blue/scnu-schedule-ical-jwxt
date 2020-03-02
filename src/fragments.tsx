@@ -1,5 +1,5 @@
 import React, { CSSProperties, useState } from 'react'
-import { useLockBodyScroll, useAsync } from 'react-use'
+import { useLockBodyScroll, useAsync, useDebounce, useCounter } from 'react-use'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
 import {
@@ -11,6 +11,7 @@ import {
 import * as Rules from './rules'
 import ReactDOM from 'react-dom'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
+import copy from 'copy-to-clipboard'
 
 function Section({
 	children,
@@ -104,11 +105,46 @@ export function Introduction() {
 	)
 }
 
-function CodeCopier() {
+function useCopyFeedback() {
+	const [copyTimes, { inc }] = useCounter(0)
+	const [display, setDisplay] = useState(false)
+	useDebounce(
+		() => {
+			setDisplay(false)
+		},
+		2000,
+		[copyTimes]
+	)
+
+	return [
+		display,
+		(text: string) => {
+			copy(text)
+			inc()
+			setDisplay(true)
+		},
+	] as const
+}
+
+const scratchScript =
+	'javascript:' + Rules.scratchScript.replace(/^\s+/g, '').replace(/\n/g, '')
+
+function CodeCopier({ onCopy }: { onCopy?: () => void }) {
+	const code = scratchScript
+	const [feedback, copyFn] = useCopyFeedback()
+
 	return (
 		<>
-			<input value={'123'} readOnly />
-			<button>复制</button>
+			<code>{code}</code>
+			<button
+				onClick={() => {
+					copyFn(scratchScript)
+					onCopy?.()
+				}}
+			>
+				复制
+			</button>
+			<p hidden={!feedback}>已复制</p>
 		</>
 	)
 }
@@ -148,13 +184,21 @@ export function TroubleOnGettingStarted() {
 }
 
 export function GettingStarted() {
+	const [copyed, setCopyed] = useState(false)
+
 	return (
 		<Section style={{ background: '#333', color: 'white' }}>
 			复制如下代码
-			<CodeCopier />
+			<CodeCopier
+				onCopy={() => {
+					setCopyed(true)
+				}}
+			/>
 			<br />
-			打开教务信息网，在地址栏内输入这串代码，注意 javascript:
-			<ChildWindowOpener />
+			<div hidden={!copyed}>
+				打开教务信息网，在地址栏内输入这串代码，注意 javascript:
+				<ChildWindowOpener />
+			</div>
 			<TroubleOnGettingStarted />
 			<br />
 			我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
