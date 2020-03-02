@@ -1,7 +1,8 @@
-import React, { CSSProperties, useState } from 'react'
-import { useLockBodyScroll, useAsync, useDebounce, useCounter } from 'react-use'
+import React, { CSSProperties, useState, useRef } from 'react'
+import { useAsync, useDebounceFn, useToggle } from '@umijs/hooks'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
+import './App.css'
 import {
 	useProgressState,
 	Progress,
@@ -12,6 +13,9 @@ import * as Rules from './rules'
 import ReactDOM from 'react-dom'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 import copy from 'copy-to-clipboard'
+import { Button, Layout, Menu, Tooltip } from 'antd'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCopy } from '@fortawesome/free-solid-svg-icons'
 
 function Section({
 	children,
@@ -36,32 +40,30 @@ export function Navbar() {
 
 	return (
 		<header>
-			<nav>
-				<ul>
-					<li
-						onClick={() => {
-							setDocument(false)
-						}}
-					>
-						介绍
-					</li>
-					<li>立即使用</li>
-					<li
-						onClick={() => {
-							setProgress(Progress.Idle)
-							setDocument(true)
-						}}
-					>
-						帮助文档
-					</li>
-					<li>反馈</li>
-					<li>
-						<a href="https://i.scnu.edu.cn/" target="_about">
-							关于我们
-						</a>
-					</li>
-				</ul>
-			</nav>
+			<Menu mode="horizontal">
+				<Menu.Item
+					onClick={() => {
+						setDocument(false)
+					}}
+				>
+					介绍
+				</Menu.Item>
+				<Menu.Item>立即使用</Menu.Item>
+				<Menu.Item
+					onClick={() => {
+						setProgress(Progress.Idle)
+						setDocument(true)
+					}}
+				>
+					{' '}
+					帮助文档
+				</Menu.Item>
+				<Menu.Item>
+					<a href="https://i.scnu.edu.cn/" target="_about">
+						关于我们
+					</a>
+				</Menu.Item>
+			</Menu>
 		</header>
 	)
 }
@@ -69,22 +71,22 @@ export function Navbar() {
 export function Introduction() {
 	return (
 		<>
-			<Section>
+			<Section style={{ padding: '3rem' }}>
 				<h1>绿色、简洁、无毒的日历</h1>
 				<p>
 					无需下载第三方APP、无流氓推广、没有多余的社交功能、耗电量极低，没有任何副作用
 				</p>
 				<IntroductionImage id={1} />
 			</Section>
-			<Section style={{ background: '#09f', color: 'white' }}>
-				<h1>跨平台的云课表</h1>
+			<Section style={{ background: '#09f', color: 'white', padding: '3rem' }}>
+				<h1 style={{ color: 'white' }}>跨平台的云课表</h1>
 				<p>手机与电脑云端同步。随时随地在手机上查看我的课程！</p>
 				<div>
 					<IntroductionImage id={3} />
 					<IntroductionImage id={2} />
 				</div>
 			</Section>
-			<Section>
+			<Section style={{ padding: '3rem' }}>
 				<h1>还有……</h1>
 				<p>
 					将课表导入日历以后，Siri, Cortana
@@ -98,54 +100,50 @@ export function Introduction() {
 					<IntroductionImage id={6} />
 				</div>
 			</Section>
-			<Section style={{ height: '8rem', paddingTop: '2rem' }}>
+			<div style={{ height: '8rem', paddingTop: '2rem', textAlign: 'center' }}>
 				<h1>开始尝试 ↓</h1>
-			</Section>
+			</div>
 		</>
 	)
-}
-
-function useCopyFeedback() {
-	const [copyTimes, { inc }] = useCounter(0)
-	const [display, setDisplay] = useState(false)
-	useDebounce(
-		() => {
-			setDisplay(false)
-		},
-		2000,
-		[copyTimes]
-	)
-
-	return [
-		display,
-		(text: string) => {
-			copy(text)
-			inc()
-			setDisplay(true)
-		},
-	] as const
 }
 
 const scratchScript =
+	// eslint-disable-next-line
 	'javascript:' + Rules.scratchScript.replace(/^\s+/g, '').replace(/\n/g, '')
+
+const { Content } = Layout
 
 function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 	const code = scratchScript
-	const [feedback, copyFn] = useCopyFeedback()
+	const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
 	return (
-		<>
-			<code>{code}</code>
-			<button
-				onClick={() => {
-					copyFn(scratchScript)
-					onCopy?.()
-				}}
-			>
-				复制
-			</button>
-			<p hidden={!feedback}>已复制</p>
-		</>
+		<Content>
+			<div>
+				<textarea
+					ref={textAreaRef}
+					style={{ resize: 'none', color: 'black' }}
+					rows={3}
+					children={code}
+					onClick={() => {
+						textAreaRef.current?.select()
+					}}
+				/>
+			</div>
+			<Tooltip title="已复制" trigger="click">
+				<Button
+					type="primary"
+					shape="round"
+					icon={<FontAwesomeIcon icon={faCopy} />}
+					onClick={() => {
+						copy(code)
+						onCopy?.()
+					}}
+				>
+					复制
+				</Button>
+			</Tooltip>
+		</Content>
 	)
 }
 
@@ -187,7 +185,7 @@ export function GettingStarted() {
 	const [copyed, setCopyed] = useState(false)
 
 	return (
-		<Section style={{ background: '#333', color: 'white' }}>
+		<Section style={{ background: '#333', color: 'white', paddingTop: '3rem' }}>
 			复制如下代码
 			<CodeCopier
 				onCopy={() => {
@@ -209,12 +207,14 @@ export function GettingStarted() {
 export function ScreenPage({
 	show,
 	children,
-}: React.PropsWithChildren<{ show: boolean }>) {
-	useLockBodyScroll(show)
+	style,
+}: React.PropsWithChildren<{ show: boolean; style?: CSSProperties }>) {
+	// TODO 滚动锁
+	// useLockBodyScroll(show)
 
 	return ReactDOM.createPortal(
 		<div hidden={!show}>
-			<div className={Styles.ScreenPage}>
+			<div className={Styles.ScreenPage} {...{ style }}>
 				<Navbar></Navbar>
 				{children}
 			</div>
@@ -271,11 +271,8 @@ export function ResultPage() {
 	return (
 		<ScreenPage show={progress !== Progress.Idle}>
 			<div
-				style={
-					progress === Progress.Success
-						? { background: '#0e3' }
-						: { background: '#e33' }
-				}
+				style={{ background: '#0e3' }}
+				hidden={progress !== Progress.Success}
 			>
 				<h1>结果页面</h1>
 				<button
@@ -286,6 +283,33 @@ export function ResultPage() {
 					完成
 				</button>
 			</div>
+			<div
+				style={{ background: '#e33' }}
+				hidden={progress !== Progress.Failure}
+			>
+				<h1>Oops, 出现了故障</h1>
+				<button
+					onClick={() => {
+						setProgress(Progress.Idle)
+					}}
+				>
+					完成
+				</button>
+			</div>
 		</ScreenPage>
+	)
+}
+
+export function Footer() {
+	return (
+		<footer>
+			Copyright © 2008-2018
+			<a href="https://i.scnu.edu.cn/about/" target="_about">
+				ISCNU
+			</a>
+			. All rights Reserved.
+			<br />
+			华南师范大学网络协会 版权所有
+		</footer>
 	)
 }

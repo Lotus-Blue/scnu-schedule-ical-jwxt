@@ -1,4 +1,4 @@
-import create from 'zustand'
+import create, { UseStore, StoreApi } from 'zustand'
 
 export enum Progress {
 	Idle,
@@ -6,18 +6,51 @@ export enum Progress {
 	Failure,
 }
 
-const [useProgressStore] = create(set => ({
-	value: Progress.Idle,
-	set: (value: Progress) => {
-		set({ value: value })
-	},
-}))
+type FailResult = {
+	title?: string
+	code?: string
+}
 
-export function useProgressState(): [Progress, (value: Progress) => void] {
+const [useFailResultStore, FailResultStore] = create(() => ({} as FailResult))
+
+export function useFailResult() {
+	return {
+		title: useFailResultStore(state => state.title),
+		code: useFailResultStore(state => state.code),
+	}
+}
+
+type Temp = {
+	progress: Progress
+}
+
+export const [useProgressStore] = create((set, get) => ({
+	progress: Progress.Idle,
+	set: progress => {
+		set({ progress })
+	},
+	toFailure(result = {}) {
+		FailResultStore.setState(result)
+		set({ progress: Progress.Failure })
+	},
+})) as [
+	UseStore<{
+		progress: Progress
+		set: (_: Progress) => void
+		toFailure: (_?: FailResult) => void
+	}>,
+	unknown
+]
+
+export function useProgressState() {
 	return [
-		useProgressStore(state => state.value),
+		useProgressStore(state => state.progress),
 		useProgressStore(state => state.set),
-	]
+	] as const
+}
+
+export function useProgress(): Progress {
+	return useProgressStore(state => state.progress)
 }
 
 const [useDocumentStore] = create(set => ({
@@ -34,22 +67,26 @@ export function useDocumentShowState(): [boolean, (value: boolean) => void] {
 	]
 }
 
-const [useChildWindowStore] = create((set, get) => ({
+type ChildWindow = {
+	window: Window | null
+	open: (_: string) => void
+	close: () => void
+}
+
+const [useChildWindowStore, ChildWindowStore] = create((set, get) => ({
 	window: null,
-	open(url: string) {
+	open(url) {
 		set({ window: window.open(url) })
 	},
 	close() {
 		get().window?.close()
-		set({ window: null })
+		set({ window: undefined })
 	},
-}))
+})) as [UseStore<ChildWindow>, StoreApi<ChildWindow>]
 
-export function useChildWindow(): {
-	window: Window | null
-	open: (url: string) => void
-	close: () => void
-} {
+export { ChildWindowStore }
+
+export function useChildWindow() {
 	return {
 		window: useChildWindowStore(state => state.window),
 		open: useChildWindowStore(state => state.open),

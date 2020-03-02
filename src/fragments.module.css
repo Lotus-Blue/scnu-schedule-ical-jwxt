@@ -1,39 +1,39 @@
 .Section {
-  height: 61.8vw;
-  box-sizing: border-box;
-  text-align: center;
+	min-height: 61.8vw;
+	box-sizing: border-box;
+	text-align: center;
 }
 
 .DisplayImage {
-  max-height: 380px;
+	max-height: 380px;
 }
 
 .DocumentContainer {
-  display: flex;
-  flex-direction: row;
-  overflow-y: hidden;
-  padding-left: 2rem;
+	display: flex;
+	flex-direction: row;
+	overflow-y: hidden;
+	padding-left: 2rem;
 }
 
 .ScreenPage {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  background: white;
-  width: 100%;
-  height: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	background: white;
+	width: 100%;
+	height: 100%;
 }
 
 .Article {
-  overflow-y: auto;
-  flex-grow: 1;
-  width: min-content;
-  padding-right: 2rem;
+	overflow-y: auto;
+	flex-grow: 1;
+	width: min-content;
+	padding-right: 2rem;
 }
 
 .Article img {
-  max-width: 80%;
+	max-width: 80%;
 }

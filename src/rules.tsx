@@ -16,7 +16,7 @@ export const calendarData = {
 	timezone: 'Asia/Shanghai',
 }
 /** 学期的第一个周一的日期 */
-export const firstMonday = '2019-09-02'
+export const firstMonday = '2020-03-02'
 /** 抓取 Javascript 代码
  * 每条语句必须要有分号结尾，否则无法单行执行。
  */

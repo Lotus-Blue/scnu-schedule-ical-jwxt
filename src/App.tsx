@@ -5,27 +5,22 @@ import {
 	Navbar,
 	Document,
 	ResultPage,
+	Footer,
 } from './fragments'
 import * as Rules from './rules'
-import { Progress, useProgressState, useChildWindow } from './stores'
-import { useEvent } from 'react-use'
+import { useProgressStore, useChildWindow, ChildWindowStore } from './stores'
+import 'antd/dist/antd.css'
+import { useEventListener } from '@umijs/hooks'
 import generator, { CourseDataTransformer } from './generator'
 
 function Debugger() {
-	const [, setProgress] = useProgressState()
+	const setFailure = useProgressStore(state => state.toFailure)
 
 	return (
 		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
 			<button
 				onClick={() => {
-					setProgress(Progress.Success)
-				}}
-			>
-				成功模拟
-			</button>
-			<button
-				onClick={() => {
-					setProgress(Progress.Failure)
+					setFailure()
 				}}
 			>
 				失败模拟
@@ -35,22 +30,12 @@ function Debugger() {
 }
 
 function App() {
-	const [, setProgress] = useProgressState()
-	const { close } = useChildWindow()
-
-	useEvent(
-		'message',
-		useCallback(
-			({ data, origin }: MessageEvent) => {
-				if (origin === Rules.jwxtOrigin) {
-					console.log(generator((data as any[]).map(CourseDataTransformer)))
-
-					close()
-				}
-			},
-			[close, setProgress]
-		)
-	)
+	useEventListener('message', ({ data, origin }: MessageEvent) => {
+		if (origin === Rules.jwxtOrigin) {
+			console.log(generator((data as any[]).map(CourseDataTransformer)))
+			ChildWindowStore.getState().close()
+		}
+	})
 
 	return (
 		<>
@@ -60,6 +45,7 @@ function App() {
 			<GettingStarted />
 			<Document />
 			<ResultPage />
+			<Footer />
 		</>
 	)
 }
