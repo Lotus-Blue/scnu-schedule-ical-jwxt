@@ -1,7 +1,7 @@
 import React from 'react'
 import {
 	Introduction,
-	GettingStarted,
+	GettingStart,
 	Navbar,
 	HelpDoc,
 	ResultPage,
@@ -53,7 +53,7 @@ function App() {
 			<Debugger />
 			<Navbar />
 			<Introduction />
-			<GettingStarted />
+			<GettingStart />
 			<HelpDoc />
 			<ResultPage />
 			<Footer />

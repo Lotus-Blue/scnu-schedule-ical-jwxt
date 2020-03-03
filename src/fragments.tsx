@@ -39,7 +39,7 @@ function IntroductionImage({ id }: { id: number }) {
 
 enum MenuItem {
 	Introduction,
-	GettingStarted,
+	GettingStart,
 	Help,
 	AboutUs,
 }
@@ -64,7 +64,7 @@ export function Navbar() {
 				介绍
 			</Menu.Item>,
 			<Menu.Item
-				key={`${MenuItem.GettingStarted}`}
+				key={`${MenuItem.GettingStart}`}
 				onClick={() => {
 					getAppState().hideHelpDoc()
 					animateScroll(getAppState().gettingStartElement)
@@ -101,7 +101,7 @@ export function Navbar() {
 						showingHelpDoc
 							? `${MenuItem.Help}`
 							: watchingGettingStart
-							? `${MenuItem.GettingStarted}`
+							? `${MenuItem.GettingStart}`
 							: `${MenuItem.Introduction}`,
 					]}
 				>
@@ -216,7 +216,7 @@ function ChildWindowOpener() {
 	)
 }
 
-export function TroubleOnGettingStarted() {
+export function TroubleOnGettingStart() {
 	return (
 		<details style={{ paddingTop: '1rem' }}>
 			<summary>遇到问题吗？</summary>
@@ -238,7 +238,7 @@ const campusList = [
 	Rules.Campus.Nanhai,
 ]
 
-export function GettingStarted() {
+export function GettingStart() {
 	const closeWindow = useAppState(state => state.closeChildWindow)
 	const [copied, setCopied] = useState(false)
 
