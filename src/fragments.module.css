@@ -8,11 +8,15 @@
 	max-height: 380px;
 }
 
-.DocumentContainer {
+.HelpDocContainer {
 	display: flex;
 	flex-direction: row;
 	overflow-y: hidden;
 	padding-left: 2rem;
+}
+
+.HelpDocContainer > * {
+	margin-top: 1.5rem;
 }
 
 .ScreenPage {

@@ -1,21 +1,22 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import {
 	Introduction,
 	GettingStarted,
 	Navbar,
-	Document,
+	HelpDoc,
 	ResultPage,
 	Footer,
 } from './fragments'
 import * as Rules from './rules'
-import { useProgressStore, ProgressStore, ChildWindowStore } from './stores'
+import { useAppState, getAppState } from './AppState'
 import 'antd/dist/antd.css'
 import './App.css'
 import { useEventListener } from '@umijs/hooks'
 import generator, { CourseDataTransformer } from './generator'
+import { useBodyScrollLock } from './hooks'
 
 function Debugger() {
-	const setFailure = useProgressStore(state => state.toFailure)
+	const setFailure = useAppState(state => state.turnToFailure)
 
 	return (
 		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
@@ -31,14 +32,16 @@ function Debugger() {
 }
 
 function App() {
-	const setFailure = useProgressStore(state => state.toFailure)
+	const setFailure = useAppState(state => state.turnToFailure)
+	useBodyScrollLock(useAppState(state => state.showingHelpDoc))
 
 	useEventListener('message', ({ data, origin }: MessageEvent) => {
 		if (origin === Rules.jwxtOrigin) {
-			ChildWindowStore.getState().close()
+			const appState = getAppState()
+			appState.closeChildWindow()
 			try {
 				const calendar = generator((data as any[]).map(CourseDataTransformer))
-				ProgressStore.getState().success(calendar)
+				appState.turnToSuccess(calendar)
 			} catch (error) {
 				setFailure({ code: error.toString() })
 			}
@@ -51,7 +54,7 @@ function App() {
 			<Navbar />
 			<Introduction />
 			<GettingStarted />
-			<Document />
+			<HelpDoc />
 			<ResultPage />
 			<Footer />
 		</>

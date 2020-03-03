@@ -1,28 +1,31 @@
-import React, { CSSProperties, useState, useRef } from 'react'
-import { useAsync, useDebounceFn, useToggle } from '@umijs/hooks'
+import React, { CSSProperties, useState, useRef, useMemo } from 'react'
+import { useAsync, useResponsive, useToggle, useInViewport } from '@umijs/hooks'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
-import {
-	useProgressState,
-	Progress,
-	useDocumentShowState,
-	useChildWindow,
-	useBlobUrlStore,
-} from './stores'
+import { useAppState, getAppState, ProgressState } from './AppState'
 import * as Rules from './rules'
 import ReactDOM from 'react-dom'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 import copy from 'copy-to-clipboard'
-import { Button, Layout, Menu, Tooltip } from 'antd'
+import { Button, Layout, Menu, Tooltip, Select, Affix } from 'antd'
+import { campus } from './generator'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
+import SubMenu from 'antd/lib/menu/SubMenu'
+import SmoothScroll from 'smooth-scroll'
 
-function Section({
-	children,
-	style,
-}: React.PropsWithChildren<{ style?: CSSProperties }>) {
-	return <section className={Styles.Section} {...{ children, style }} />
-}
+const { animateScroll } = new SmoothScroll()
+
+const Section = React.forwardRef<
+	HTMLElement,
+	React.PropsWithChildren<{
+		style?: CSSProperties
+	}>
+>(({ children, style }, ref) => {
+	return (
+		<section {...{ ref }} className={Styles.Section} {...{ children, style }} />
+	)
+})
 
 function IntroductionImage({ id }: { id: number }) {
 	return (
@@ -34,43 +37,88 @@ function IntroductionImage({ id }: { id: number }) {
 	)
 }
 
+enum MenuItem {
+	Introduction,
+	GettingStarted,
+	Help,
+	AboutUs,
+}
+
 export function Navbar() {
-	const [, setDocument] = useDocumentShowState()
-	const [, setProgress] = useProgressState()
+	const biggerThanXs = useResponsive().sm
+	const { state: collapsed, toggle: toggleCollapsed } = useToggle()
+	const showingHelpDoc = useAppState(state => state.showingHelpDoc)
+	const [watchingGettingStart] = useInViewport(
+		useAppState(state => state.gettingStartElement)
+	)
+
+	const menuItems = useMemo(
+		() => [
+			<Menu.Item
+				onClick={() => {
+					getAppState().hideHelpDoc()
+					animateScroll(getAppState().introductionElement)
+				}}
+				key={`${MenuItem.Introduction}`}
+			>
+				介绍
+			</Menu.Item>,
+			<Menu.Item
+				key={`${MenuItem.GettingStarted}`}
+				onClick={() => {
+					getAppState().hideHelpDoc()
+					animateScroll(getAppState().gettingStartElement)
+				}}
+			>
+				立即使用
+			</Menu.Item>,
+			<Menu.Item
+				onClick={() => {
+					const appState = getAppState()
+					appState.showHelpDoc()
+					appState.turnToIdle()
+				}}
+				key={`${MenuItem.Help}`}
+			>
+				帮助文档
+			</Menu.Item>,
+			<Menu.Item key={`${MenuItem.AboutUs}`}>
+				<a href="https://i.scnu.edu.cn/" target="_about">
+					关于我们
+				</a>
+			</Menu.Item>,
+		],
+		[]
+	)
 
 	return (
-		<header>
-			<Menu mode="horizontal">
-				<Menu.Item
-					onClick={() => {
-						setDocument(false)
-					}}
+		<Affix>
+			<header>
+				<Menu
+					mode="horizontal"
+					style={{ textAlign: 'right' }}
+					selectedKeys={[
+						showingHelpDoc
+							? `${MenuItem.Help}`
+							: watchingGettingStart
+							? `${MenuItem.GettingStarted}`
+							: `${MenuItem.Introduction}`,
+					]}
 				>
-					介绍
-				</Menu.Item>
-				<Menu.Item>立即使用</Menu.Item>
-				<Menu.Item
-					onClick={() => {
-						setProgress(Progress.Idle)
-						setDocument(true)
-					}}
-				>
-					{' '}
-					帮助文档
-				</Menu.Item>
-				<Menu.Item>
-					<a href="https://i.scnu.edu.cn/" target="_about">
-						关于我们
-					</a>
-				</Menu.Item>
-			</Menu>
-		</header>
+					{biggerThanXs ? (
+						menuItems
+					) : (
+						<SubMenu title={'todo' /* todo */}>{menuItems}</SubMenu>
+					)}
+				</Menu>
+			</header>
+		</Affix>
 	)
 }
 
 export function Introduction() {
 	return (
-		<>
+		<div ref={_ => getAppState().setIntroductionElement(_)}>
 			<Section style={{ padding: '3rem' }}>
 				<h1>绿色、简洁、无毒的日历</h1>
 				<p>
@@ -89,6 +137,7 @@ export function Introduction() {
 			<Section style={{ padding: '3rem' }}>
 				<h1>还有……</h1>
 				<p>
+					{/* cspell:words Siri Cortana */}
 					将课表导入日历以后，Siri, Cortana
 					这些智能助理也能派上用场啦！更多惊喜，待您发现
 					<span role="img" aria-label="开心">
@@ -103,7 +152,7 @@ export function Introduction() {
 			<div style={{ height: '8rem', paddingTop: '2rem', textAlign: 'center' }}>
 				<h1>开始尝试 ↓</h1>
 			</div>
-		</>
+		</div>
 	)
 }
 
@@ -130,6 +179,7 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 						textAreaRef.current?.select()
 						onCopy?.()
 					}}
+					readOnly
 				/>
 			</div>
 			<Tooltip title="已复制" trigger="click">
@@ -150,13 +200,14 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 }
 
 function ChildWindowOpener() {
-	const { window, open } = useChildWindow()
+	const hasWindow = Boolean(useAppState(state => state.window))
+	const openChildWindow = useAppState(state => state.openChildWindow)
 
-	return window ? null : (
+	return hasWindow ? null : (
 		<div>
 			<Button
 				onClick={() => {
-					open(Rules.jwxtUrl)
+					openChildWindow(Rules.jwxtUrl)
 				}}
 			>
 				打开教务处官网
@@ -179,20 +230,44 @@ export function TroubleOnGettingStarted() {
 	)
 }
 
+const { Option } = Select
+
+const campusList = [
+	Rules.Campus.Shipai,
+	Rules.Campus.Daxuecheng,
+	Rules.Campus.Nanhai,
+]
+
 export function GettingStarted() {
-	const { close } = useChildWindow()
-	const [copyed, setCopyed] = useState(false)
+	const closeWindow = useAppState(state => state.closeChildWindow)
+	const [copied, setCopied] = useState(false)
 
 	return (
-		<Section style={{ background: '#333', color: 'white', paddingTop: '3rem' }}>
+		<Section
+			style={{ background: '#333', color: 'white', paddingTop: '3rem' }}
+			ref={_ => getAppState().setGettingStartElement(_)}
+		>
+			<Select
+				defaultValue={Rules.Campus.Shipai}
+				style={{ width: 120 }}
+				onChange={(value: string) => {
+					console.log(campus.value)
+					campus.value = value as Rules.Campus
+					console.log(campus.value)
+				}}
+			>
+				<Option value={Rules.Campus.Shipai.toString()}>石牌</Option>
+				<Option value={Rules.Campus.Daxuecheng.toString()}>大学城</Option>
+				<Option value={Rules.Campus.Nanhai.toString()}>南海</Option>
+			</Select>
 			复制如下代码
 			<CodeCopier
 				onCopy={() => {
-					setCopyed(true)
+					setCopied(true)
 				}}
 			/>
 			<br />
-			<div hidden={!copyed}>
+			<div hidden={!copied}>
 				打开教务信息网，登陆后，在地址栏内输入这串代码
 				<br />
 				（建议使用电脑版的 Chrome 浏览器/老板 Firefox 完成操作）
@@ -202,7 +277,7 @@ export function GettingStarted() {
 			<div>
 				<Button
 					onClick={() => {
-						close()
+						closeWindow()
 					}}
 				>
 					重试
@@ -219,7 +294,10 @@ export function ScreenPage({
 	show,
 	children,
 	style,
-}: React.PropsWithChildren<{ show: boolean; style?: CSSProperties }>) {
+}: React.PropsWithChildren<{
+	show: boolean
+	style?: CSSProperties
+}>) {
 	// TODO 滚动锁
 	// useLockBodyScroll(show)
 
@@ -234,10 +312,10 @@ export function ScreenPage({
 	)
 }
 
-export function Document() {
+export function HelpDoc() {
 	const [content, setContent] = useState<ContentWithTocNodesSet | undefined>()
 	const [error, setError] = useState(false)
-	const [show] = useDocumentShowState()
+	const show = useAppState(state => state.showingHelpDoc)
 
 	useAsync(async () => {
 		if (show && !content) {
@@ -249,11 +327,6 @@ export function Document() {
 				setError(true)
 				console.error(error)
 			}
-			/* 	unified()
-								.use(remarkParse)
-								.use(remarkSlug)
-								.use(remarkToReact)
-								.processSync(raw).contents */
 		}
 	}, [show, content])
 
@@ -264,7 +337,7 @@ export function Document() {
 			) : !content ? (
 				'加载中'
 			) : (
-				<div className={Styles.DocumentContainer}>
+				<div className={Styles.HelpDocContainer}>
 					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
 						<h1>目录</h1>
 						{content.toc}
@@ -277,14 +350,15 @@ export function Document() {
 }
 
 export function ResultPage() {
-	const [progress, setProgress] = useProgressState()
-	const url = useBlobUrlStore(state => state.url)
+	const progress = useAppState(state => state.progress)
+	const turnToIdle = useAppState(state => state.turnToIdle)
+	const url = useAppState(state => state.downloadableBlobUrl)
 
 	return (
-		<ScreenPage show={progress !== Progress.Idle}>
+		<ScreenPage show={progress !== ProgressState.Idle}>
 			<div
 				style={{ background: '#0e3' }}
-				hidden={progress !== Progress.Success}
+				hidden={progress !== ProgressState.Success}
 			>
 				<h1>恭喜！你的精品日历已做好</h1>
 				<div>
@@ -294,7 +368,7 @@ export function ResultPage() {
 				</div>
 				<button
 					onClick={() => {
-						setProgress(Progress.Idle)
+						turnToIdle()
 					}}
 				>
 					返回
@@ -302,12 +376,12 @@ export function ResultPage() {
 			</div>
 			<div
 				style={{ background: '#e33' }}
-				hidden={progress !== Progress.Failure}
+				hidden={progress !== ProgressState.Failure}
 			>
 				<h1>Oops, 出现了故障</h1>
 				<button
 					onClick={() => {
-						setProgress(Progress.Idle)
+						turnToIdle()
 					}}
 				>
 					完成

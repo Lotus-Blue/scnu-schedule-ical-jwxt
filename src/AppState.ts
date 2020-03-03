@@ -1,0 +1,101 @@
+import { create, UseStore, StoreApi } from 'zustand'
+
+import { ICalCalendar } from 'ical-generator'
+
+declare module 'ical-generator' {
+	interface ICalCalendar {
+		/** 只在浏览器中存在
+		 * @see 包源码 */
+		toBlob(): Blob
+	}
+}
+
+export enum ProgressState {
+	Idle,
+	Success,
+	Failure,
+}
+
+type FailureMessage = {
+	title?: string
+	code?: string
+}
+
+type ReturnTypeOfCreate<T> = [UseStore<T>, StoreApi<T>]
+type State = {
+	// 外观
+	gettingStartElement: HTMLElement | null
+	setGettingStartElement(element: HTMLElement | null): void
+	introductionElement: HTMLElement | null
+	setIntroductionElement(element: HTMLElement | null): void
+	showingHelpDoc: boolean
+	showHelpDoc(): void
+	hideHelpDoc(): void
+	// 进度
+	progress: ProgressState
+	failureMessage: FailureMessage
+	turnToFailure(message?: FailureMessage): void
+	turnToSuccess(calendar: ICalCalendar): void
+	turnToIdle(): void
+	// 子窗口
+	window: null | Window
+	openChildWindow(url: string): void
+	closeChildWindow(): void
+	// Blob 管理
+	downloadableBlobUrl: null | string
+	storeBlob(blob: Blob): void
+}
+
+const created = create((set, get) => ({
+	// 外观
+	gettingStartElement: null,
+	setGettingStartElement(_) {
+		set({ gettingStartElement: _ })
+	},
+	introductionElement: null,
+	setIntroductionElement(_) {
+		set({ introductionElement: _ })
+	},
+	showingHelpDoc: false,
+	showHelpDoc() {
+		set({ showingHelpDoc: true })
+	},
+	hideHelpDoc() {
+		set({ showingHelpDoc: false })
+	},
+	// 进度
+	progress: ProgressState.Idle,
+	failureMessage: {},
+	turnToFailure(message = {}) {
+		set({ progress: ProgressState.Failure, failureMessage: message })
+	},
+	turnToSuccess(calendar) {
+		get().storeBlob(calendar.toBlob())
+		set({ progress: ProgressState.Success })
+	},
+	turnToIdle() {
+		set({ progress: ProgressState.Idle })
+	},
+	// 子窗口管理
+	window: null,
+	openChildWindow(url) {
+		set({ window: window.open(url) })
+	},
+	closeChildWindow() {
+		get().window?.close()
+		set({ window: undefined })
+	},
+	// Blob 管理
+	downloadableBlobUrl: null,
+	storeBlob(blob) {
+		const url = get().downloadableBlobUrl
+		if (url) URL.revokeObjectURL(url)
+		set({ downloadableBlobUrl: URL.createObjectURL(blob) })
+	},
+})) as ReturnTypeOfCreate<State>
+
+export function getAppState() {
+	return created[1].getState()
+}
+
+export const useAppState = created[0]
