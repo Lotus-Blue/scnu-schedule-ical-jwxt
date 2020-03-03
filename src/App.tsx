@@ -1,31 +1,35 @@
-import React from 'react'
-import {
-	Introduction,
-	GettingStart,
-	Navbar,
-	HelpDoc,
-	ResultPage,
-	Footer,
-} from './fragments'
-import * as Rules from './rules'
-import { useAppState, getAppState } from './AppState'
-import 'antd/dist/antd.css'
-import './App.css'
 import { useEventListener } from '@umijs/hooks'
+import 'antd/dist/antd.css'
+import React from 'react'
+import './App.css'
+import { getAppState, useAppState } from './AppState'
+import {
+	Footer,
+	GettingStart,
+	HelpDoc,
+	Introduction,
+	Navbar,
+	ResultPage,
+} from './fragments'
 import generator, { CourseDataTransformer } from './generator'
-import { useBodyScrollLock } from './hooks'
+import * as Rules from './rules'
 
 function Debugger() {
-	const setFailure = useAppState(state => state.turnToFailure)
-
 	return (
 		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
 			<button
 				onClick={() => {
-					setFailure()
+					getAppState().turnToFailure()
 				}}
 			>
 				失败模拟
+			</button>
+			<button
+				onClick={() => {
+					getAppState().turnToSuccess(null!)
+				}}
+			>
+				成功模拟
 			</button>
 		</div>
 	)
@@ -33,7 +37,6 @@ function Debugger() {
 
 function App() {
 	const setFailure = useAppState(state => state.turnToFailure)
-	useBodyScrollLock(useAppState(state => state.showingHelpDoc))
 
 	useEventListener('message', ({ data, origin }: MessageEvent) => {
 		if (origin === Rules.jwxtOrigin) {

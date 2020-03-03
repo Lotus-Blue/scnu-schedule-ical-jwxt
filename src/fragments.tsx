@@ -1,34 +1,19 @@
-import React, {
-	CSSProperties,
-	useState,
-	useRef,
-	useMemo,
-	useEffect,
-} from 'react'
-import { useAsync, useResponsive, useToggle, useInViewport } from '@umijs/hooks'
+import { faCopy } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useAsync, useInViewport, useResponsive, useToggle } from '@umijs/hooks'
+import { Affix, Button, Checkbox, Form, InputNumber, Layout, Menu, Select, Switch, Tooltip } from 'antd'
+import SubMenu from 'antd/lib/menu/SubMenu'
+import copy from 'copy-to-clipboard'
+import { AnimatePresence, motion } from 'framer-motion'
+import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
+import ReactDOM from 'react-dom'
+import SmoothScroll from 'smooth-scroll'
+import { getAppState, ProgressState, useAppState } from './AppState'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
-import { useAppState, getAppState, ProgressState } from './AppState'
-import * as Rules from './rules'
-import ReactDOM from 'react-dom'
+import { useBodyScrollLock } from './hooks'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
-import copy from 'copy-to-clipboard'
-import {
-	Button,
-	Layout,
-	Menu,
-	Tooltip,
-	Select,
-	Affix,
-	Form,
-	Checkbox,
-	InputNumber,
-	Switch,
-} from 'antd'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCopy } from '@fortawesome/free-solid-svg-icons'
-import SubMenu from 'antd/lib/menu/SubMenu'
-import SmoothScroll from 'smooth-scroll'
+import * as Rules from './rules'
 
 const { animateScroll } = new SmoothScroll()
 
@@ -129,7 +114,7 @@ export function Navbar() {
 					{biggerThanXs ? (
 						menuItems
 					) : (
-						<SubMenu title={'todo' /* todo */}>{menuItems}</SubMenu>
+						<SubMenu title={'菜单' /* todo */}>{menuItems}</SubMenu>
 					)}
 				</Menu>
 			</header>
@@ -278,8 +263,8 @@ export function GettingStart() {
 		>
 			<Form
 				style={{ textAlign: 'center' }}
-				labelCol={{ span: 8 }}
-				wrapperCol={{ span: 16 }}
+				labelCol={{ offset: 6, span: 4 }}
+				wrapperCol={{ offset: 1, span: 6 }}
 			>
 				<Form.Item
 					label={
@@ -307,6 +292,7 @@ export function GettingStart() {
 				</Form.Item>
 				<Form.Item label="在课名后面备注教师名字">
 					<Switch
+						style={showTeacherName ? {} : { boxShadow: '#888 0px 0px 2px 1px' }}
 						checked={showTeacherName}
 						onChange={_ => {
 							setTeacherName(_)
@@ -316,7 +302,7 @@ export function GettingStart() {
 				<Form.Item label="你的校区：">
 					<Select
 						value={selectedCampus}
-						style={{ width: 120 }}
+						style={{ width: '100%' }}
 						onChange={_ => {
 							setCampus(_)
 						}}
@@ -369,8 +355,7 @@ export function ScreenPage({
 	show: boolean
 	style?: CSSProperties
 }>) {
-	// TODO 滚动锁
-	// useLockBodyScroll(show)
+	useBodyScrollLock(show)
 
 	return ReactDOM.createPortal(
 		<div hidden={!show}>
@@ -427,37 +412,51 @@ export function ResultPage() {
 
 	return (
 		<ScreenPage show={progress !== ProgressState.Idle}>
-			<div
-				style={{ background: '#0e3' }}
-				hidden={progress !== ProgressState.Success}
-			>
-				<h1>恭喜！你的精品日历已做好</h1>
-				<div>
-					<a href={url ?? '#'} download="测试日历.ics">
-						<Button size="large">下载日历</Button>
-					</a>
-				</div>
-				<button
-					onClick={() => {
-						turnToIdle()
-					}}
-				>
-					返回
-				</button>
-			</div>
-			<div
-				style={{ background: '#e33' }}
-				hidden={progress !== ProgressState.Failure}
-			>
-				<h1>Oops, 出现了故障</h1>
-				<button
-					onClick={() => {
-						turnToIdle()
-					}}
-				>
-					完成
-				</button>
-			</div>
+			<AnimatePresence>
+				{progress === ProgressState.Success && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 1 }}
+						className={Styles.Success}
+					>
+						<h1>恭喜！你的精品日历已做好</h1>
+						<div>
+							<a href={url ?? '#'} download="测试日历.ics">
+								<Button size="large">下载日历</Button>
+							</a>
+						</div>
+						<button
+							onClick={() => {
+								turnToIdle()
+							}}
+						>
+							返回
+						</button>
+					</motion.div>
+				)}
+			</AnimatePresence>
+			<AnimatePresence>
+				{progress === ProgressState.Failure && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 1 }}
+						className={Styles.Failure}
+					>
+						<h1>Oops, 出现了故障</h1>
+						<button
+							onClick={() => {
+								turnToIdle()
+							}}
+						>
+							完成
+						</button>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</ScreenPage>
 	)
 }

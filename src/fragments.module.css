@@ -44,4 +44,32 @@
 
 .GettingStart label {
 	color: white !important;
+	font-size: 12pt !important;
+}
+
+.Failure {
+	flex: 1;
+	background: #622;
+	background: linear-gradient(to top, #533, #d11);
+	color: white;
+}
+
+.Failure h1 {
+	color: inherit;
+	padding-top: 8rem;
+	text-align: center;
+}
+
+.Success {
+	flex: 1;
+	background: #56ab2f; /* fallback for old browsers */
+	background: linear-gradient(to top, #a8e063, #56ab2f);
+	color: white;
+}
+
+.Success h1 {
+	color: inherit;
+	padding-top: 8rem;
+	text-align: center;
+	text-shadow: 2px 2px 2px #00000085;
 }

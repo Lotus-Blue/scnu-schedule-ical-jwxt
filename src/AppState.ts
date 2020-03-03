@@ -75,7 +75,7 @@ const created = create((set, get) => ({
 		set({ progress: ProgressState.Failure, failureMessage: message })
 	},
 	turnToSuccess(calendar) {
-		get().storeBlob(calendar.toBlob())
+		if (calendar) get().storeBlob(calendar.toBlob())
 		set({ progress: ProgressState.Success })
 	},
 	turnToIdle() {
