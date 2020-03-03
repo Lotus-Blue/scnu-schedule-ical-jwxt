@@ -12,10 +12,10 @@ export interface CourseData {
 	startWeek: number
 	/** 结束周 */
 	endWeek: number
-	/** 上课时间 */
-	startTime: string
-	/** 下课时间 */
-	endTime: string
+	/** 上课节次 */
+	startSerial: number
+	/** 下课节次 */
+	endSerial: number
 	/** 教师名 */
 	teacher: string
 	/** 单双周信息 */
@@ -24,30 +24,32 @@ export interface CourseData {
 	place: string
 }
 
-export default function(
-	courseList: CourseData[],
-	options: {
-		/** 提醒时间 */
-		alarm?: number
-		teacherInName?: boolean
-	} = {}
-) {
-	const { alarm, teacherInName } = options
+export interface GenerateOptions {
+	campus: Rules.Campus
+	alarm: number
+	teacherInName: boolean
+}
+
+export default function(courseList: CourseData[], options: GenerateOptions) {
+	const { alarm, teacherInName, campus } = options
 	const cal = ical(Rules.calendarData)
 	courseList.forEach(course => {
 		// 开课日期与第一个周一的偏移天数
 		const startDayOffset = course.day - 1 + 7 * (course.startWeek - 1)
 		// 结课日期与第一个周一的偏移天数
 		const endDayOffset = course.day - 1 + 7 * (course.endWeek - 1)
+		// 上课时间
+		const courseStartTime = Rules.schedule[campus][course.startSerial].start
+		// 下课时间
+		const courseEndTime = Rules.schedule[campus][course.endSerial].end
 		// 一天的开始时刻
 		const startTime = new Date(
-			getDateAfterStartTime(course.startTime).getTime() +
+			getDateAfterStartTime(courseStartTime).getTime() +
 				startDayOffset * 86400000
 		)
 		// 一天的结束时刻
 		const endTime = new Date(
-			getDateAfterStartTime(course.endTime).getTime() +
-				startDayOffset * 86400000
+			getDateAfterStartTime(courseEndTime).getTime() + startDayOffset * 86400000
 		)
 		const event = cal.createEvent({
 			start: startTime,
@@ -95,17 +97,18 @@ function parseWeekDuration(value: string) {
 
 function parseTimeDuration(value: string) {
 	const iterator = value.matchAll(/\d+/g)
-	const start = iterator.next().value[0] as string
-	const end = iterator.next().value[0] as string
+	const start = parseInt(iterator.next().value[0])
+	const end = parseInt(iterator.next().value[0])
 	return [start, end] as const
 }
 
 export function CourseDataTransformer(
+	// cSpell:words cdmc kcmc
 	data: Record<'cdmc' | 'kcmc' | 'xqj' | 'zcd' | 'jcs' | 'xm', string>
 ): CourseData {
 	const { cdmc, kcmc, xqj, zcd, jcs, xm } = data
 	const [startWeek, endWeek] = parseWeekDuration(zcd)
-	const [startTime, endTime] = parseTimeDuration(jcs)
+	const [startSerial, endSerial] = parseTimeDuration(jcs)
 
 	return {
 		name: kcmc,
@@ -114,8 +117,8 @@ export function CourseDataTransformer(
 		singleOrDouble: 0,
 		startWeek,
 		endWeek,
-		startTime,
-		endTime,
+		startSerial,
+		endSerial,
 		teacher: xm,
 	}
 }

@@ -40,8 +40,14 @@ function App() {
 			const appState = getAppState()
 			appState.closeChildWindow()
 			try {
-				const calendar = generator((data as any[]).map(CourseDataTransformer))
-				appState.turnToSuccess(calendar)
+				const { generateOptions } = getAppState()
+				if (generateOptions) {
+					const calendar = generator(
+						(data as any[]).map(CourseDataTransformer),
+						generateOptions
+					)
+					appState.turnToSuccess(calendar)
+				} else throw '错误'
 			} catch (error) {
 				setFailure({ code: error.toString() })
 			}

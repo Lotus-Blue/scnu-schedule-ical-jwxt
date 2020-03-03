@@ -1,6 +1,8 @@
 import { create, UseStore, StoreApi } from 'zustand'
 
 import { ICalCalendar } from 'ical-generator'
+import * as Rules from './rules'
+import { GenerateOptions } from './generator'
 
 declare module 'ical-generator' {
 	interface ICalCalendar {
@@ -44,6 +46,9 @@ type State = {
 	// Blob 管理
 	downloadableBlobUrl: null | string
 	storeBlob(blob: Blob): void
+	// 生成参数
+	generateOptions: null | GenerateOptions
+	setGenerateOptions(options: GenerateOptions): void
 }
 
 const created = create((set, get) => ({
@@ -91,6 +96,11 @@ const created = create((set, get) => ({
 		const url = get().downloadableBlobUrl
 		if (url) URL.revokeObjectURL(url)
 		set({ downloadableBlobUrl: URL.createObjectURL(blob) })
+	},
+	// 生成参数
+	generateOptions: null,
+	setGenerateOptions(_) {
+		set({ generateOptions: _ })
 	},
 })) as ReturnTypeOfCreate<State>
 

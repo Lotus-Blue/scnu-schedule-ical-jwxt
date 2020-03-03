@@ -1,4 +1,10 @@
-import React, { CSSProperties, useState, useRef, useMemo } from 'react'
+import React, {
+	CSSProperties,
+	useState,
+	useRef,
+	useMemo,
+	useEffect,
+} from 'react'
 import { useAsync, useResponsive, useToggle, useInViewport } from '@umijs/hooks'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
@@ -7,8 +13,18 @@ import * as Rules from './rules'
 import ReactDOM from 'react-dom'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 import copy from 'copy-to-clipboard'
-import { Button, Layout, Menu, Tooltip, Select, Affix } from 'antd'
-import { campus } from './generator'
+import {
+	Button,
+	Layout,
+	Menu,
+	Tooltip,
+	Select,
+	Affix,
+	Form,
+	Checkbox,
+	InputNumber,
+	Switch,
+} from 'antd'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import SubMenu from 'antd/lib/menu/SubMenu'
@@ -19,11 +35,16 @@ const { animateScroll } = new SmoothScroll()
 const Section = React.forwardRef<
 	HTMLElement,
 	React.PropsWithChildren<{
+		className?: string
 		style?: CSSProperties
 	}>
->(({ children, style }, ref) => {
+>(({ children, style, className }, ref) => {
 	return (
-		<section {...{ ref }} className={Styles.Section} {...{ children, style }} />
+		<section
+			{...{ ref }}
+			className={className ? `${Styles.Section} ${className}` : Styles.Section}
+			{...{ children, style }}
+		/>
 	)
 })
 
@@ -232,60 +253,110 @@ export function TroubleOnGettingStart() {
 
 const { Option } = Select
 
-const campusList = [
-	Rules.Campus.Shipai,
-	Rules.Campus.Daxuecheng,
-	Rules.Campus.Nanhai,
-]
-
 export function GettingStart() {
 	const closeWindow = useAppState(state => state.closeChildWindow)
+	const [selectedCampus, setCampus] = useState<Rules.Campus | undefined>()
+	const [enableAlarm, setAlarm] = useState(false)
+	const [minutes, setMinutes] = useState(30)
 	const [copied, setCopied] = useState(false)
+	const [showTeacherName, setTeacherName] = useState(false)
+
+	useEffect(() => {
+		if (selectedCampus)
+			getAppState().setGenerateOptions({
+				alarm: enableAlarm ? minutes : 0,
+				teacherInName: showTeacherName,
+				campus: selectedCampus,
+			})
+	}, [selectedCampus, enableAlarm, minutes, showTeacherName])
 
 	return (
 		<Section
+			className={Styles.GettingStart}
 			style={{ background: '#333', color: 'white', paddingTop: '3rem' }}
 			ref={_ => getAppState().setGettingStartElement(_)}
 		>
-			<Select
-				defaultValue={Rules.Campus.Shipai}
-				style={{ width: 120 }}
-				onChange={(value: string) => {
-					console.log(campus.value)
-					campus.value = value as Rules.Campus
-					console.log(campus.value)
-				}}
+			<Form
+				style={{ textAlign: 'center' }}
+				labelCol={{ span: 8 }}
+				wrapperCol={{ span: 16 }}
 			>
-				<Option value={Rules.Campus.Shipai.toString()}>石牌</Option>
-				<Option value={Rules.Campus.Daxuecheng.toString()}>大学城</Option>
-				<Option value={Rules.Campus.Nanhai.toString()}>南海</Option>
-			</Select>
-			复制如下代码
-			<CodeCopier
-				onCopy={() => {
-					setCopied(true)
-				}}
-			/>
-			<br />
-			<div hidden={!copied}>
-				打开教务信息网，登陆后，在地址栏内输入这串代码
-				<br />
-				（建议使用电脑版的 Chrome 浏览器/老板 Firefox 完成操作）
-				<ChildWindowOpener />
-			</div>
-			<TroubleOnGettingStarted />
-			<div>
-				<Button
-					onClick={() => {
-						closeWindow()
-					}}
+				<Form.Item
+					label={
+						<Checkbox
+							checked={enableAlarm}
+							onChange={event => {
+								setAlarm(event.target.checked)
+							}}
+						>
+							提前提醒我
+						</Checkbox>
+					}
 				>
-					重试
-				</Button>
-			</div>
-			<br />
-			我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
-			<div style={{ height: '3rem' }} />
+					<InputNumber
+						step={5}
+						min={5}
+						max={60}
+						value={minutes}
+						onChange={_ => {
+							setMinutes(_ ?? 30)
+						}}
+						disabled={!enableAlarm}
+						formatter={value => `${value} 分钟`}
+					/>
+				</Form.Item>
+				<Form.Item label="在课名后面备注教师名字">
+					<Switch
+						checked={showTeacherName}
+						onChange={_ => {
+							setTeacherName(_)
+						}}
+					></Switch>
+				</Form.Item>
+				<Form.Item label="你的校区：">
+					<Select
+						value={selectedCampus}
+						style={{ width: 120 }}
+						onChange={_ => {
+							setCampus(_)
+						}}
+					>
+						<Option value={Rules.Campus.Shipai}>石牌</Option>
+						<Option value={Rules.Campus.Daxuecheng}>大学城</Option>
+						<Option value={Rules.Campus.Nanhai}>南海</Option>
+					</Select>
+				</Form.Item>
+			</Form>
+			{useAppState(state => state.generateOptions) && (
+				<>
+					复制如下代码
+					<CodeCopier
+						onCopy={() => {
+							setCopied(true)
+						}}
+					/>
+					<br />
+					<div hidden={!copied}>
+						打开教务信息网，登陆后，在地址栏内输入这串代码
+						<br />
+						（建议使用电脑版的 Chrome 浏览器/老板 Firefox 完成操作）
+						<ChildWindowOpener />
+					</div>
+					<TroubleOnGettingStart />
+					<div>
+						<Button
+							onClick={() => {
+								closeWindow()
+							}}
+						>
+							重试
+						</Button>
+					</div>
+					<br />
+					我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
+					<div style={{ height: '3rem' }} />
+				</>
+			)}
 		</Section>
 	)
 }

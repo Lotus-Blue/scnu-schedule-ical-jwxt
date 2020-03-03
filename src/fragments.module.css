@@ -41,3 +41,7 @@
 .Article img {
 	max-width: 80%;
 }
+
+.GettingStart label {
+	color: white !important;
+}

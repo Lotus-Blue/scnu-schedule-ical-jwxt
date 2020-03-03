@@ -43,11 +43,11 @@ export const scratchScript =
 ` + `('${domain}')`
 export enum Campus {
 	/** 石牌 */
-	Shipai,
+	Shipai="sp",
 	/** 大学城 */
-	Daxuecheng,
+	Daxuecheng="dxc",
 	/** 南海 */
-	Nanhai,
+	Nanhai="nh",
 }
 /** 上课时间表 */
 export const schedule: Record<
