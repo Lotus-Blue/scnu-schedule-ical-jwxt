@@ -2,7 +2,6 @@ import React, { CSSProperties, useState, useRef } from 'react'
 import { useAsync, useDebounceFn, useToggle } from '@umijs/hooks'
 import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
-import './App.css'
 import {
 	useProgressState,
 	Progress,

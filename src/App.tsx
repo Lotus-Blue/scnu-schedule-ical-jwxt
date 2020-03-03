@@ -10,6 +10,7 @@ import {
 import * as Rules from './rules'
 import { useProgressStore, ProgressStore, ChildWindowStore } from './stores'
 import 'antd/dist/antd.css'
+import './App.css'
 import { useEventListener } from '@umijs/hooks'
 import generator, { CourseDataTransformer } from './generator'
 
