@@ -1,11 +1,31 @@
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { useAsync, useInViewport, useResponsive, useToggle } from '@umijs/hooks'
-import { Affix, Button, Checkbox, Form, InputNumber, Layout, Menu, Select, Switch, Tooltip } from 'antd'
-import SubMenu from 'antd/lib/menu/SubMenu'
+import {
+	Affix,
+	Button,
+	Checkbox,
+	Form,
+	InputNumber,
+	Layout,
+	Menu,
+	Select,
+	Switch,
+	Tooltip,
+	Drawer,
+	Result,
+	Skeleton,
+} from 'antd'
 import copy from 'copy-to-clipboard'
-import { AnimatePresence, motion } from 'framer-motion'
-import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import React, {
+	CSSProperties,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import ReactDOM from 'react-dom'
 import SmoothScroll from 'smooth-scroll'
 import { getAppState, ProgressState, useAppState } from './AppState'
@@ -14,6 +34,7 @@ import Styles from './fragments.module.css'
 import { useBodyScrollLock } from './hooks'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 import * as Rules from './rules'
+import { FinishCircle } from './movieclips'
 
 const { animateScroll } = new SmoothScroll()
 
@@ -43,7 +64,7 @@ function IntroductionImage({ id }: { id: number }) {
 	)
 }
 
-enum MenuItem {
+enum MenuItemKey {
 	Introduction,
 	GettingStart,
 	Help,
@@ -62,18 +83,24 @@ export function Navbar() {
 		() => [
 			<Menu.Item
 				onClick={() => {
-					getAppState().hideHelpDoc()
+					const appState = getAppState()
+					appState.turnToIdle()
+					appState.hideHelpDoc()
 					animateScroll(getAppState().introductionElement)
+					toggleCollapsed(false)
 				}}
-				key={`${MenuItem.Introduction}`}
+				key={`${MenuItemKey.Introduction}`}
 			>
 				介绍
 			</Menu.Item>,
 			<Menu.Item
-				key={`${MenuItem.GettingStart}`}
+				key={`${MenuItemKey.GettingStart}`}
 				onClick={() => {
-					getAppState().hideHelpDoc()
-					animateScroll(getAppState().gettingStartElement)
+					const appState = getAppState()
+					appState.turnToIdle()
+					appState.hideHelpDoc()
+					animateScroll(appState.gettingStartElement)
+					toggleCollapsed(false)
 				}}
 			>
 				立即使用
@@ -83,12 +110,13 @@ export function Navbar() {
 					const appState = getAppState()
 					appState.showHelpDoc()
 					appState.turnToIdle()
+					toggleCollapsed(false)
 				}}
-				key={`${MenuItem.Help}`}
+				key={`${MenuItemKey.Help}`}
 			>
 				帮助文档
 			</Menu.Item>,
-			<Menu.Item key={`${MenuItem.AboutUs}`}>
+			<Menu.Item key={`${MenuItemKey.AboutUs}`}>
 				<a href="https://i.scnu.edu.cn/" target="_about">
 					关于我们
 				</a>
@@ -98,27 +126,56 @@ export function Navbar() {
 	)
 
 	return (
-		<Affix>
-			<header>
-				<Menu
-					mode="horizontal"
-					style={{ textAlign: 'right' }}
-					selectedKeys={[
-						showingHelpDoc
-							? `${MenuItem.Help}`
-							: watchingGettingStart
-							? `${MenuItem.GettingStart}`
-							: `${MenuItem.Introduction}`,
-					]}
-				>
-					{biggerThanXs ? (
-						menuItems
-					) : (
-						<SubMenu title={'菜单' /* todo */}>{menuItems}</SubMenu>
-					)}
+		<>
+			<Affix>
+				<header>
+					<Menu
+						mode="horizontal"
+						style={{ textAlign: 'right', padding: '0 2rem' }}
+						selectedKeys={[
+							showingHelpDoc
+								? `${MenuItemKey.Help}`
+								: watchingGettingStart
+								? `${MenuItemKey.GettingStart}`
+								: `${MenuItemKey.Introduction}`,
+						]}
+					>
+						{biggerThanXs ? (
+							[
+								<Menu.Item
+									onClick={() => {
+										window.open('https://i.scnu.edu.cn/about/')
+									}}
+									style={{ float: 'left' }}
+								>
+									<img src="logo.png" style={{ height: '1.75rem' }} />
+								</Menu.Item>,
+								...menuItems,
+							]
+						) : (
+							<Menu.Item
+								onClick={() => {
+									toggleCollapsed()
+								}}
+							>
+								<FontAwesomeIcon icon={faBars} />
+							</Menu.Item>
+						)}
+					</Menu>
+				</header>
+			</Affix>
+			<Drawer
+				visible={!biggerThanXs && collapsed}
+				onClose={() => {
+					toggleCollapsed(false)
+				}}
+				style={{ padding: 0 }}
+			>
+				<Menu mode="vertical" style={{ marginTop: 64, border: 0 }}>
+					{menuItems}
 				</Menu>
-			</header>
-		</Affix>
+			</Drawer>
+		</>
 	)
 }
 
@@ -126,7 +183,7 @@ export function Introduction() {
 	return (
 		<div ref={_ => getAppState().setIntroductionElement(_)}>
 			<Section style={{ padding: '3rem' }}>
-				<h1>绿色、简洁、无毒的日历</h1>
+				<h1>绿色、简洁的校园日历</h1>
 				<p>
 					无需下载第三方APP、无流氓推广、没有多余的社交功能、耗电量极低，没有任何副作用
 				</p>
@@ -370,7 +427,7 @@ export function ScreenPage({
 
 export function HelpDoc() {
 	const [content, setContent] = useState<ContentWithTocNodesSet | undefined>()
-	const [error, setError] = useState(false)
+	const [error, setError] = useState('')
 	const show = useAppState(state => state.showingHelpDoc)
 
 	useAsync(async () => {
@@ -380,8 +437,7 @@ export function HelpDoc() {
 					MarkdownParser.convert(await (await fetch(Rules.documentPath)).text())
 				)
 			} catch (error) {
-				setError(true)
-				console.error(error)
+				setError(`${error}`)
 			}
 		}
 	}, [show, content])
@@ -389,9 +445,15 @@ export function HelpDoc() {
 	return (
 		<ScreenPage {...{ show }}>
 			{error ? (
-				'网络错误'
+				<Result
+					status="error"
+					title="发生错误"
+					subTitle="你可以把这个问题反馈给我们。"
+				>
+					{error}
+				</Result>
 			) : !content ? (
-				'加载中'
+				<Skeleton />
 			) : (
 				<div className={Styles.HelpDocContainer}>
 					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
@@ -410,60 +472,63 @@ export function ResultPage() {
 	const turnToIdle = useAppState(state => state.turnToIdle)
 	const url = useAppState(state => state.downloadableBlobUrl)
 
+	const isNotIdle = progress !== ProgressState.Idle
+	const isSuccess = progress === ProgressState.Success
+	const isFailure = progress === ProgressState.Failure
+
 	return (
-		<ScreenPage show={progress !== ProgressState.Idle}>
-			<AnimatePresence>
-				{progress === ProgressState.Success && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						transition={{ duration: 1 }}
-						className={Styles.Success}
+		<ScreenPage show={isNotIdle}>
+			{isSuccess && (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 1 }}
+					className={Styles.Success}
+				>
+					<FinishCircle />
+					<h1>恭喜！你的精品日历已做好</h1>
+					<div>
+						<a href={url ?? '#'} download="ISCNU匠心营造.ics">
+							<Button size="large" style={{ width: 256 }} shape="round">
+								下载日历
+							</Button>
+						</a>
+					</div>
+					<a
+						style={{ lineHeight: 4, color: 'white' }}
+						onClick={() => {
+							turnToIdle()
+						}}
 					>
-						<h1>恭喜！你的精品日历已做好</h1>
-						<div>
-							<a href={url ?? '#'} download="测试日历.ics">
-								<Button size="large">下载日历</Button>
-							</a>
-						</div>
-						<button
-							onClick={() => {
-								turnToIdle()
-							}}
-						>
-							返回
-						</button>
-					</motion.div>
-				)}
-			</AnimatePresence>
-			<AnimatePresence>
-				{progress === ProgressState.Failure && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						transition={{ duration: 1 }}
-						className={Styles.Failure}
+						返回
+					</a>
+				</motion.div>
+			)}
+			{isFailure && (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					transition={{ duration: 1 }}
+					className={Styles.Failure}
+				>
+					<h1>Oops, 出现了故障</h1>
+					<button
+						onClick={() => {
+							turnToIdle()
+						}}
 					>
-						<h1>Oops, 出现了故障</h1>
-						<button
-							onClick={() => {
-								turnToIdle()
-							}}
-						>
-							完成
-						</button>
-					</motion.div>
-				)}
-			</AnimatePresence>
+						完成
+					</button>
+				</motion.div>
+			)}
 		</ScreenPage>
 	)
 }
 
 export function Footer() {
 	return (
-		<footer>
+		<footer style={{ textAlign: 'center', lineHeight: 2, margin: '2rem 0' }}>
 			Copyright © 2008-2018
 			<a href="https://i.scnu.edu.cn/about/" target="_about">
 				ISCNU
