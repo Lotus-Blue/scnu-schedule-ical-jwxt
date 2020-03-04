@@ -11,12 +11,15 @@
 .HelpDocContainer {
 	display: flex;
 	flex-direction: row;
-	overflow-y: hidden;
 	padding-left: 2rem;
 }
 
+.HelpDocContainer nav {
+	min-width: 25vw;
+}
+
 .HelpDocContainer > * {
-	margin-top: 1.5rem;
+	padding-top: 1.5rem;
 }
 
 .ScreenPage {
@@ -31,15 +34,9 @@
 	height: 100%;
 }
 
-.Article {
-	overflow-y: auto;
-	flex-grow: 1;
-	width: min-content;
-	padding-right: 2rem;
-}
-
 .Article img {
 	max-width: 80%;
+	max-height: 80vh;
 }
 
 .GettingStart label {

@@ -5,4 +5,5 @@
 
 body {
 	font-size: 12pt;
+	overflow-x: hidden;
 }

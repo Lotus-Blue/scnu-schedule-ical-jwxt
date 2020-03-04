@@ -429,6 +429,7 @@ export function HelpDoc() {
 	const [content, setContent] = useState<ContentWithTocNodesSet | undefined>()
 	const [error, setError] = useState('')
 	const show = useAppState(state => state.showingHelpDoc)
+	const smallerThanMd = !useResponsive().md
 
 	useAsync(async () => {
 		if (show && !content) {
@@ -454,13 +455,32 @@ export function HelpDoc() {
 				</Result>
 			) : !content ? (
 				<Skeleton />
-			) : (
-				<div className={Styles.HelpDocContainer}>
-					<nav style={{ overflowY: 'auto', flex: '0 256px' }}>
+			) : smallerThanMd ? (
+				<div style={{ overflowY: 'auto', padding: '2rem' }}>
+					<nav>
 						<h1>目录</h1>
 						{content.toc}
 					</nav>
-					<article className={Styles.Article} children={content.body} />
+					<article
+						className={Styles.Article}
+						style={{ paddingTop: '1rem' }}
+						children={content.body}
+					/>
+				</div>
+			) : (
+				<div
+					className={Styles.HelpDocContainer}
+					style={{ overflowY: 'hidden' }}
+				>
+					<nav style={{ overflowY: 'auto' }}>
+						<h1>目录</h1>
+						{content.toc}
+					</nav>
+					<article
+						className={Styles.Article}
+						children={content.body}
+						style={{ overflowY: 'auto', flexGrow: 1, padding: '1rem 2rem 0' }}
+					/>
 				</div>
 			)}
 		</ScreenPage>
