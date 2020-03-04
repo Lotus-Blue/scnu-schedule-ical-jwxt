@@ -1,21 +1,20 @@
-import { faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faCopy } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { useAsync, useInViewport, useResponsive, useToggle } from '@umijs/hooks'
 import {
 	Affix,
 	Button,
 	Checkbox,
+	Drawer,
 	Form,
 	InputNumber,
 	Layout,
 	Menu,
+	Result,
 	Select,
+	Skeleton,
 	Switch,
 	Tooltip,
-	Drawer,
-	Result,
-	Skeleton,
 } from 'antd'
 import copy from 'copy-to-clipboard'
 import { motion } from 'framer-motion'
@@ -33,8 +32,9 @@ import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
 import { useBodyScrollLock } from './hooks'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
-import * as Rules from './rules'
 import { FinishCircle } from './movieclips'
+import * as Rules from './rules'
+import { useScrollPercentage } from 'react-scroll-percentage'
 
 const { animateScroll } = new SmoothScroll()
 
@@ -54,14 +54,29 @@ const Section = React.forwardRef<
 	)
 })
 
-function IntroductionImage({ id }: { id: number }) {
+function IntroductionImage({
+	id,
+	style,
+}: {
+	id: number
+	style?: CSSProperties
+}) {
 	return (
 		<img
 			className={Styles.DisplayImage}
 			alt="展示效果"
 			src={IntroductionImageSources[id - 1]}
+			{...{ style }}
 		/>
 	)
+}
+
+function screenshotProps(id: number) {
+	return {
+		className: Styles.DisplayImage,
+		alt: '展示效果',
+		src: IntroductionImageSources[id - 1],
+	}
 }
 
 enum MenuItemKey {
@@ -180,21 +195,82 @@ export function Navbar() {
 }
 
 export function Introduction() {
+	const biggerThanMd = useResponsive().md
+	const [onSecondPage, secondPageRef] = useInViewport<HTMLDivElement>()
+
 	return (
 		<div ref={_ => getAppState().setIntroductionElement(_)}>
-			<Section style={{ padding: '3rem' }}>
-				<h1>绿色、简洁的校园日历</h1>
-				<p>
-					无需下载第三方APP、无流氓推广、没有多余的社交功能、耗电量极低，没有任何副作用
-				</p>
-				<IntroductionImage id={1} />
+			<Section>
+				<motion.div
+					style={{ margin: '3rem 0 4rem' }}
+					initial={{ y: -64, opacity: 0 }}
+					animate={{ y: 0, opacity: 1 }}
+					transition={{ duration: 0.8, delay: 0.6 }}
+				>
+					<h1>绿色、简洁的校园日历</h1>
+					<p>
+						无需下载第三方APP、无流氓推广、没有多余的社交功能、耗电量极低，没有任何副作用
+					</p>
+				</motion.div>
+				<div>
+					<motion.div
+						initial={{ y: 128, opacity: 0, scale: 0.9 }}
+						animate={{
+							y: 0,
+							opacity: 1,
+							scale: 1,
+							transition: {
+								duration: 0.8,
+								delay: 1.6,
+							},
+						}}
+					>
+						<img
+							// whileHover={{ scale: 1.1, transition: { delay: 0.6 } }}
+							style={{
+								maxWidth: '90%',
+								maxHeight: 420,
+								boxShadow: '0px 16px 32px 4px #9E9E9E',
+								borderRadius: 8,
+								marginBottom: '2rem',
+							}}
+							{...screenshotProps(1)}
+						/>
+					</motion.div>
+				</div>
 			</Section>
 			<Section style={{ background: '#09f', color: 'white', padding: '3rem' }}>
 				<h1 style={{ color: 'white' }}>跨平台的云课表</h1>
-				<p>手机与电脑云端同步。随时随地在手机上查看我的课程！</p>
-				<div>
-					<IntroductionImage id={3} />
-					<IntroductionImage id={2} />
+				<p style={{ paddingBottom: '2rem' }}>
+					手机与电脑云端同步。随时随地在手机上查看我的课程！
+				</p>
+				<div ref={secondPageRef}>
+					<motion.img
+						animate={{ x: onSecondPage ? 0 : -512 }}
+						transition={{ duration: 0.6, bounceStiffness: 1000 }}
+						initial={{ originX: 0 }}
+						whileHover={{ scale: 1.1 }}
+						style={{
+							border: '1px solid #bbb',
+							outline: '2px solid white',
+							...(biggerThanMd
+								? { marginRight: '1rem' }
+								: { display: 'block' }),
+						}}
+						{...screenshotProps(3)}
+					/>
+					<motion.img
+						animate={{ x: onSecondPage ? 0 : 512 }}
+						transition={{ duration: 0.6, bounceStiffness: 1000 }}
+						initial={{ originX: 1 }}
+						whileHover={{ scale: 1.1 }}
+						style={{
+							border: '1px solid #bbb',
+							outline: '2px solid white',
+							...(biggerThanMd ? { marginLeft: '1rem' } : { display: 'block' }),
+						}}
+						{...screenshotProps(2)}
+					/>
 				</div>
 			</Section>
 			<Section style={{ padding: '3rem' }}>
@@ -208,8 +284,8 @@ export function Introduction() {
 					</span>
 				</p>
 				<div>
-					<IntroductionImage id={7} />
-					<IntroductionImage id={6} />
+					<img {...screenshotProps(7)} />
+					<img {...screenshotProps(6)} />
 				</div>
 			</Section>
 			<div style={{ height: '8rem', paddingTop: '2rem', textAlign: 'center' }}>
@@ -235,7 +311,15 @@ function CodeCopier({ onCopy }: { onCopy?: () => void }) {
 			<div>
 				<textarea
 					ref={textAreaRef}
-					style={{ resize: 'none', color: 'black' }}
+					style={{
+						resize: 'none',
+						color: 'black',
+						border: '2px solid gray',
+						borderRadius: '8px',
+						padding: '4px 16px',
+						width: '40%',
+						margin: '1rem 0',
+					}}
 					rows={3}
 					value={code}
 					onClick={() => {
@@ -375,7 +459,7 @@ export function GettingStart() {
 			</Form>
 			{useAppState(state => state.generateOptions) && (
 				<>
-					复制如下代码
+					<p style={{ paddingTop: '1rem' }}>复制如下代码</p>
 					<CodeCopier
 						onCopy={() => {
 							setCopied(true)
