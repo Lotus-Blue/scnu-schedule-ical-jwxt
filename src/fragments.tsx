@@ -250,7 +250,7 @@ export function GettingStart() {
 		if (selectedCampus)
 			getAppState().setGenerateOptions({
 				alarm: enableAlarm ? minutes : 0,
-				teacherInName: showTeacherName,
+				teacherInTitle: showTeacherName,
 				campus: selectedCampus,
 			})
 	}, [selectedCampus, enableAlarm, minutes, showTeacherName])

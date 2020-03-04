@@ -27,11 +27,11 @@ export interface CourseData {
 export interface GenerateOptions {
 	campus: Rules.Campus
 	alarm: number
-	teacherInName: boolean
+	teacherInTitle: boolean
 }
 
 export default function(courseList: CourseData[], options: GenerateOptions) {
-	const { alarm, teacherInName, campus } = options
+	const { alarm, teacherInTitle, campus } = options
 	const cal = ical(Rules.calendarData)
 	courseList.forEach(course => {
 		// 开课日期与第一个周一的偏移天数
@@ -54,16 +54,17 @@ export default function(courseList: CourseData[], options: GenerateOptions) {
 		const event = cal.createEvent({
 			start: startTime,
 			end: endTime,
-			summary: course.name + (teacherInName ? ` (${course.teacher})` : ''),
-			description:
-				course.teacher +
+			summary: course.name + (teacherInTitle ? ` (${course.teacher})` : ''),
+			description: !teacherInTitle
+				? `任课教师：${course.teacher}`
+				: '' /* +
 				(course.singleOrDouble === 1
 					? '\n单周'
 					: course.singleOrDouble === 2
 					? '\n双周'
 					: '') +
 				'\n' +
-				'-- Powered by ISCNU',
+				'-- Powered by ISCNU' */,
 			location: course.place,
 			repeating: {
 				freq: 'WEEKLY', // 以周为周期
