@@ -1,6 +1,6 @@
-import { useEventListener } from '@umijs/hooks'
+import { useEventListener, useKeyPress } from '@umijs/hooks'
 import 'antd/dist/antd.css'
-import React from 'react'
+import React, { useState } from 'react'
 import './App.css'
 import { getAppState, useAppState } from './AppState'
 import {
@@ -15,8 +15,17 @@ import generator, { CourseDataTransformer } from './generator'
 import * as Rules from './rules'
 
 function Debugger() {
+	const [visible, setVisible] = useState(false)
+
+	useKeyPress('`', () => {
+		setVisible(true)
+	})
+
 	return (
-		<div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}>
+		<div
+			style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2 }}
+			hidden={!visible}
+		>
 			<button
 				onClick={() => {
 					getAppState().turnToFailure()
