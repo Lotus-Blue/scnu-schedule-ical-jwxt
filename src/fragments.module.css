@@ -44,13 +44,17 @@
 	font-size: 12pt !important;
 }
 
+.FormInMobile {
+	padding-bottom: 1rem;
+}
+
 .FormInMobile label {
 	display: block;
 	text-align: center;
 }
 
 .FormInMobile :global(.ant-form-item) {
-	padding-bottom: 3rem;
+	padding-bottom: 1rem;
 }
 
 .Failure {

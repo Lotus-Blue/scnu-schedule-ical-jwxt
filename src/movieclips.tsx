@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { motion, useAnimation, Variants } from 'framer-motion'
+import { motion, useAnimation, Variants, transform } from 'framer-motion'
 import { useAsync } from '@umijs/hooks'
 
 const FinishCircleVariants: Variants = {
@@ -25,7 +25,7 @@ export const FinishCircle = () => {
 	}, [])
 
 	return (
-		<svg className="progress-icon" viewBox="0 0 60 60" style={{height:128}}>
+		<svg className="progress-icon" viewBox="0 0 60 60" style={{ height: 128 }}>
 			<motion.path
 				fill="none"
 				strokeWidth="3"
@@ -54,4 +54,97 @@ export const FinishCircle = () => {
 			/>
 		</svg>
 	)
+}
+
+const scale = 1.3
+
+const marks = {
+	enterScreen: 0,
+	beginFirstPoint: 0.3,
+	beginFirstScale: 0.35,
+	endFirstScale: 0.4,
+	endFirstPoint: 0.5,
+	beginSecondPoint: 0.55,
+	beginSecondScale: 0.6,
+	endSecondScale: 0.7,
+	endSecondPoint: 0.75,
+	exitScreen: 1,
+}
+
+export function mapPosX(
+	ratio: number,
+	width: number,
+	offset: number = 0
+): number {
+	const enterPosX = width / 1.5
+	const FirstPosX = width / 8
+	const SecondPosX = -FirstPosX
+	const exitPosX = -enterPosX
+
+	const {
+		enterScreen,
+		beginFirstPoint,
+		endFirstPoint,
+		beginSecondPoint,
+		endSecondPoint,
+		exitScreen,
+	} = marks
+
+	return (
+		(ratio <= enterScreen
+			? enterPosX
+			: ratio <= beginFirstPoint
+			? transform(ratio, [enterScreen, beginFirstPoint], [enterPosX, FirstPosX])
+			: ratio <= endFirstPoint
+			? FirstPosX
+			: ratio <= beginSecondPoint
+			? transform(
+					ratio,
+					[endFirstPoint, beginSecondPoint],
+					[FirstPosX, SecondPosX]
+			  )
+			: ratio <= endSecondPoint
+			? SecondPosX
+			: ratio <= exitScreen
+			? transform(ratio, [endSecondPoint, exitScreen], [SecondPosX, exitPosX])
+			: exitPosX) + offset
+	)
+}
+
+export function firstImgScale(ratio: number) {
+	const {
+		beginFirstPoint,
+		beginFirstScale,
+		endFirstScale,
+		endFirstPoint,
+	} = marks
+
+	return ratio <= beginFirstPoint
+		? 1
+		: ratio <= beginFirstScale
+		? transform(ratio, [beginFirstPoint, beginFirstScale], [1, scale])
+		: ratio <= endFirstScale
+		? scale
+		: ratio <= endFirstPoint
+		? transform(ratio, [endFirstScale, endFirstPoint], [scale, 1])
+		: 1
+}
+
+export function secondImgScale(ratio: number) {
+	const {
+		beginSecondPoint,
+		beginSecondScale,
+		endSecondScale,
+		endSecondPoint,
+	} = marks
+
+	return ratio <= beginSecondPoint
+		? 1
+		: ratio <= beginSecondScale
+		? transform(ratio, [beginSecondPoint, beginSecondScale], [1, scale])
+		: ratio <= endSecondScale
+		? scale
+		: ratio <= endSecondPoint
+		? transform(ratio, [endSecondScale, endSecondPoint], [scale, 1])
+		: 1
 }

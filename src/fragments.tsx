@@ -1,6 +1,12 @@
 import { faBars, faCopy } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useAsync, useInViewport, useResponsive, useToggle } from '@umijs/hooks'
+import {
+	useAsync,
+	useInViewport,
+	useResponsive,
+	useToggle,
+	useSize,
+} from '@umijs/hooks'
 import {
 	Affix,
 	Button,
@@ -32,7 +38,12 @@ import { IntroductionImageSources } from './fragments.assets'
 import Styles from './fragments.module.css'
 import { useBodyScrollLock } from './hooks'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
-import { FinishCircle } from './movieclips'
+import {
+	FinishCircle,
+	mapPosX,
+	firstImgScale,
+	secondImgScale,
+} from './movieclips'
 import * as Rules from './rules'
 import { useScrollPercentage } from 'react-scroll-percentage'
 
@@ -197,6 +208,8 @@ export function Navbar() {
 export function Introduction() {
 	const biggerThanMd = useResponsive().md
 	const [onSecondPage, secondPageRef] = useInViewport<HTMLDivElement>()
+	const [thirdPageRef, thirdPageRatio] = useScrollPercentage()
+	const [{ width }] = useSize(() => document.querySelector('body')!)
 
 	return (
 		<div ref={_ => getAppState().setIntroductionElement(_)}>
@@ -283,9 +296,29 @@ export function Introduction() {
 						😋
 					</span>
 				</p>
-				<div>
-					<img {...screenshotProps(7)} />
-					<img {...screenshotProps(6)} />
+				<div ref={thirdPageRef} style={{ paddingTop: '1rem' }}>
+					<motion.img
+						initial={{ originY: 0 }}
+						animate={{
+							x: mapPosX(thirdPageRatio, width ?? 1),
+							scale: firstImgScale(thirdPageRatio),
+						}}
+						style={{
+							marginRight: '1rem',
+						}}
+						{...screenshotProps(7)}
+					/>
+					<motion.img
+						initial={{ originY: 0 }}
+						animate={{
+							x: mapPosX(thirdPageRatio, width ?? 1, 64),
+							scale: secondImgScale(thirdPageRatio),
+						}}
+						style={{
+							marginLeft: '1rem',
+						}}
+						{...screenshotProps(6)}
+					/>
 				</div>
 			</Section>
 			<div style={{ height: '8rem', paddingTop: '2rem', textAlign: 'center' }}>
@@ -371,7 +404,9 @@ export function TroubleOnGettingStart() {
 			<code>javascript:</code>
 			去掉，请补上后粘贴
 			<br />
-			一些出于安全考虑，禁用 javascript url 的浏览器也无法使用
+			出于安全考虑，禁用 javascript url 的一些浏览器也无法使用
+			<br />
+			多数手机浏览器和新版 FireFox 有这个问题，换一台设备或一个浏览器就行了。
 			{/* TODO */}
 		</details>
 	)
@@ -406,7 +441,7 @@ export function GettingStart() {
 		>
 			<Form
 				className={isXs ? Styles.FormInMobile : ''}
-				labelCol={{ sm: { offset: 6, span: 4 }, xs: 24 }}
+				labelCol={{ sm: { offset: 5, span: 5 }, xs: 24 }}
 				wrapperCol={{ sm: { offset: 1, span: 6 }, xs: 24 }}
 			>
 				<Form.Item
@@ -469,7 +504,8 @@ export function GettingStart() {
 					<div hidden={!copied}>
 						打开教务信息网，登陆后，在地址栏内输入这串代码
 						<br />
-						（建议使用电脑版的 Chrome 浏览器/老板 Firefox 完成操作）
+						（建议使用电脑版的 Chrome 浏览器完成操作）
+						<br/>
 						<ChildWindowOpener />
 					</div>
 					<TroubleOnGettingStart />
