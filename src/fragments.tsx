@@ -298,7 +298,7 @@ const { Option } = Select
 export function GettingStart() {
 	const closeWindow = useAppState(state => state.closeChildWindow)
 	const [selectedCampus, setCampus] = useState<Rules.Campus | undefined>()
-	const [enableAlarm, setAlarm] = useState(false)
+	const [enableAlarm, setAlarm] = useState(true)
 	const [minutes, setMinutes] = useState(30)
 	const [copied, setCopied] = useState(false)
 	const [showTeacherName, setTeacherName] = useState(false)
@@ -312,6 +312,8 @@ export function GettingStart() {
 			})
 	}, [selectedCampus, enableAlarm, minutes, showTeacherName])
 
+	const isXs = !useResponsive().sm
+
 	return (
 		<Section
 			className={Styles.GettingStart}
@@ -319,9 +321,9 @@ export function GettingStart() {
 			ref={_ => getAppState().setGettingStartElement(_)}
 		>
 			<Form
-				style={{ textAlign: 'center' }}
-				labelCol={{ offset: 6, span: 4 }}
-				wrapperCol={{ offset: 1, span: 6 }}
+				className={isXs ? Styles.FormInMobile : ''}
+				labelCol={{ sm: { offset: 6, span: 4 }, xs: 24 }}
+				wrapperCol={{ sm: { offset: 1, span: 6 }, xs: 24 }}
 			>
 				<Form.Item
 					label={
@@ -345,6 +347,7 @@ export function GettingStart() {
 						}}
 						disabled={!enableAlarm}
 						formatter={value => `${value} 分钟`}
+						style={isXs ? { width: '50%' } : {}}
 					/>
 				</Form.Item>
 				<Form.Item label="在课名后面备注教师名字">
@@ -359,7 +362,7 @@ export function GettingStart() {
 				<Form.Item label="你的校区：">
 					<Select
 						value={selectedCampus}
-						style={{ width: '100%' }}
+						style={{ width: isXs ? '50%' : '100%' }}
 						onChange={_ => {
 							setCampus(_)
 						}}
@@ -391,12 +394,16 @@ export function GettingStart() {
 							onClick={() => {
 								closeWindow()
 							}}
+							size="large"
+							shape="round"
 						>
 							重试
 						</Button>
 					</div>
 					<br />
-					我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有其他数据也不会被后台服务器采集。
+					<p style={{ padding: '0 2rem' }}>
+						我们承诺不会收集教务网其他非课程相关的数据，您教务网的所有数据也不会被后台服务器采集，请放心使用。
+					</p>
 					<div style={{ height: '3rem' }} />
 				</>
 			)}

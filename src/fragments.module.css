@@ -44,6 +44,15 @@
 	font-size: 12pt !important;
 }
 
+.FormInMobile label {
+	display: block;
+	text-align: center;
+}
+
+.FormInMobile :global(.ant-form-item) {
+	padding-bottom: 3rem;
+}
+
 .Failure {
 	flex: 1;
 	background: #622;
