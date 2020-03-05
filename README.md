@@ -1,44 +1,53 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 所需环境
+(1)`node.js`
 
-## Available Scripts
+(2)`React.js`
 
-In the project directory, you can run:
+# 配置过程
 
-### `yarn start`
+(1)在安装之前要确认你的机器上安装了[`node.js`](https://nodejs.org/zh-cn/)。如果没有安装，同学可以到 [`node.js`](https://nodejs.org/zh-cn/) 的官网下载自己电脑的对应的安装包来安装好环境。
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+![官网](pictures/node_js_official_website.png)
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+--------
+(2)检测是否已安装好`node.js`
+在`cmd`中输入
 
-### `yarn test`
+`npm -v`
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+如果有版本提升，则表明成功，若无可以考虑下要将`node.js`加入环境变量中
 
-### `yarn build`
+![检查](pictures/check.png)
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+--------------
+(3)安装好环境以后，只需要按照官网的指引安装 `create-react-app` 即可
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+在`cmd`中输入
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+`npm install -g create-react-app`
 
-### `yarn eject`
+这条命令会在我们的计算机上安装` create-react-app `的命令，安装好以后就可以直接使用这条命令来构建`react`过程
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+提醒:构建第一个react工程时会安装所需依赖，安装过程比较慢，大概率是因为`npm` 是从国外源下载依赖，我们 ` npm `的源改成国内的 taobao 的源，z这样速度就会有所改善。在安装依赖之前可以先修改一下 `npm` 的源：
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+`npm config set registry https://registry.npm.taobao.org`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+(4)创建`react`工程，安装所需依赖
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+`create-react-app my-first-react-app`
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+此过程需要等待几分钟，最后提示`sucess`的话表明成功
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+
+(5)`clone`该项目
+
+`git clone https://github.com/Lotus-Blue/scnu-schedule-ical-jwxt.git`
+
+(6)`cd`到该项目目录，执行
+
+`npm start`
+
+如果前面没出差错，等下会自动跳转到浏览器页面，此页面就是该项目页面
+
+![主页](pictures/website_view.png)
