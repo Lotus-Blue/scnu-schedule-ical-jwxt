@@ -4,11 +4,8 @@
 (2)`React.js`
 
 # 配置过程
-
 (1)在安装之前要确认你的机器上安装了[`node.js`](https://nodejs.org/zh-cn/)。如果没有安装，同学可以到 [`node.js`](https://nodejs.org/zh-cn/) 的官网下载自己电脑的对应的安装包来安装好环境。
-
-![官网](pictures/node_js_official_website.png)
-
+![官网](pictures\node_js_official_website.png)
 --------
 (2)检测是否已安装好`node.js`
 在`cmd`中输入
@@ -17,7 +14,7 @@
 
 如果有版本提示，则表明成功，若无可以考虑下要将`node.js`加入环境变量中
 
-![检查](pictures/check.png)
+![检查](pictures\check.png)
 
 --------------
 (3)安装好环境以后，只需要按照官网的指引安装 `create-react-app` 即可
@@ -56,6 +53,6 @@
 
 `npm start`
 
-如果前面没出差错，等下会自动跳转到浏览器，此页面就是该项目页面
+如果前面没出差错，等下会自动跳转到浏览器，此页面就是该项目主页面.
 
-![主页](pictures/website_view.png)
+![主页](pictures\website_view.png)
