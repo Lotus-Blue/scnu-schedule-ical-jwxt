@@ -1,6 +1,6 @@
 import { useEventListener, useKeyPress } from '@umijs/hooks'
 import 'antd/dist/antd.css'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.css'
 import { getAppState, useAppState } from './AppState'
 import {
@@ -45,6 +45,10 @@ function Debugger() {
 }
 
 function App() {
+	useEffect(() => {
+		document.title = Rules.title
+	}, [])
+
 	const setFailure = useAppState(state => state.turnToFailure)
 
 	useEventListener('message', ({ data, origin }: MessageEvent) => {

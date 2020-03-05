@@ -1,3 +1,4 @@
+export const title='课程表导出小帮手 - ISCNU'
 /**
  * 运行域名
  * @example 本地 localhost 调试时用 '*'

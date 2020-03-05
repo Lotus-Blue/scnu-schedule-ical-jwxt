@@ -4,13 +4,14 @@ import {
 	useAsync,
 	useInViewport,
 	useResponsive,
-	useToggle,
 	useSize,
+	useToggle,
 } from '@umijs/hooks'
 import {
 	Affix,
 	Button,
 	Checkbox,
+	Collapse,
 	Drawer,
 	Form,
 	InputNumber,
@@ -23,7 +24,7 @@ import {
 	Tooltip,
 } from 'antd'
 import copy from 'copy-to-clipboard'
-import { motion } from 'framer-motion'
+import { motion, transform } from 'framer-motion'
 import React, {
 	CSSProperties,
 	useEffect,
@@ -32,6 +33,7 @@ import React, {
 	useState,
 } from 'react'
 import ReactDOM from 'react-dom'
+import { useScrollPercentage } from 'react-scroll-percentage'
 import SmoothScroll from 'smooth-scroll'
 import { getAppState, ProgressState, useAppState } from './AppState'
 import { IntroductionImageSources } from './fragments.assets'
@@ -40,12 +42,12 @@ import { useBodyScrollLock } from './hooks'
 import MarkdownParser, { ContentWithTocNodesSet } from './MarkdownParser'
 import {
 	FinishCircle,
+	mapFirstImgScale,
 	mapPosX,
-	firstImgScale,
-	secondImgScale,
+	mapSecondImgScale,
+	marks,
 } from './movieclips'
 import * as Rules from './rules'
-import { useScrollPercentage } from 'react-scroll-percentage'
 
 const { animateScroll } = new SmoothScroll()
 
@@ -64,23 +66,6 @@ const Section = React.forwardRef<
 		/>
 	)
 })
-
-function IntroductionImage({
-	id,
-	style,
-}: {
-	id: number
-	style?: CSSProperties
-}) {
-	return (
-		<img
-			className={Styles.DisplayImage}
-			alt="展示效果"
-			src={IntroductionImageSources[id - 1]}
-			{...{ style }}
-		/>
-	)
-}
 
 function screenshotProps(id: number) {
 	return {
@@ -208,8 +193,26 @@ export function Navbar() {
 export function Introduction() {
 	const biggerThanMd = useResponsive().md
 	const [onSecondPage, secondPageRef] = useInViewport<HTMLDivElement>()
-	const [thirdPageRef, thirdPageRatio] = useScrollPercentage()
+	const [thirdPageRef, _thirdPageRatio] = useScrollPercentage()
+	const thirdPageRatio =
+		transform(
+			_thirdPageRatio,
+			[0, 0.05, 0.45, 0.5, 0.7, 1],
+			[
+				0,
+				marks.enterScreen,
+				marks.beginFirstScale,
+				marks.beginSecondScale,
+				marks.endSecondScale,
+				1,
+			]
+		) ?? 0
 	const [{ width }] = useSize(() => document.querySelector('body')!)
+
+	const firstImgX = mapPosX(thirdPageRatio, width ?? 1)
+	const firstImgScale = mapFirstImgScale(thirdPageRatio)
+	const secondImgX = mapPosX(thirdPageRatio, width ?? 1) + 64
+	const secondImgScale = mapSecondImgScale(thirdPageRatio)
 
 	return (
 		<div ref={_ => getAppState().setIntroductionElement(_)}>
@@ -258,32 +261,61 @@ export function Introduction() {
 					手机与电脑云端同步。随时随地在手机上查看我的课程！
 				</p>
 				<div ref={secondPageRef}>
-					<motion.img
-						animate={{ x: onSecondPage ? 0 : -512 }}
-						transition={{ duration: 0.6, bounceStiffness: 1000 }}
-						initial={{ originX: 0 }}
-						whileHover={{ scale: 1.1 }}
-						style={{
-							border: '1px solid #bbb',
-							outline: '2px solid white',
-							...(biggerThanMd
-								? { marginRight: '1rem' }
-								: { display: 'block' }),
-						}}
-						{...screenshotProps(3)}
-					/>
-					<motion.img
-						animate={{ x: onSecondPage ? 0 : 512 }}
-						transition={{ duration: 0.6, bounceStiffness: 1000 }}
-						initial={{ originX: 1 }}
-						whileHover={{ scale: 1.1 }}
-						style={{
-							border: '1px solid #bbb',
-							outline: '2px solid white',
-							...(biggerThanMd ? { marginLeft: '1rem' } : { display: 'block' }),
-						}}
-						{...screenshotProps(2)}
-					/>
+					{biggerThanMd ? (
+						<>
+							<motion.img
+								animate={{
+									x: onSecondPage ? 0 : -512,
+								}}
+								transition={{ duration: 0.6 }}
+								initial={{ originX: 0 }}
+								whileHover={{ scale: 1.1 }}
+								style={{
+									border: '1px solid #bbb',
+									outline: '2px solid white',
+									...(biggerThanMd
+										? { marginRight: '1rem' }
+										: { display: 'block' }),
+								}}
+								{...screenshotProps(3)}
+							/>
+							<motion.img
+								animate={{
+									x: onSecondPage ? 0 : 512,
+								}}
+								transition={{ duration: 0.6 }}
+								initial={{ originX: 1 }}
+								whileHover={{ scale: 1.1 }}
+								style={{
+									border: '1px solid #bbb',
+									outline: '2px solid white',
+									...(biggerThanMd
+										? { marginLeft: '1rem' }
+										: { display: 'block' }),
+								}}
+								{...screenshotProps(2)}
+							/>
+						</>
+					) : (
+						<>
+							<img
+								style={{
+									marginTop: '2rem',
+									border: '2px solid white',
+									maxWidth: '80%',
+								}}
+								{...screenshotProps(3)}
+							/>
+							<img
+								style={{
+									marginTop: '2rem',
+									border: '2px solid white',
+									maxHeight: '61.8vh',
+								}}
+								{...screenshotProps(2)}
+							/>
+						</>
+					)}
 				</div>
 			</Section>
 			<Section style={{ padding: '3rem' }}>
@@ -298,24 +330,42 @@ export function Introduction() {
 				</p>
 				<div ref={thirdPageRef} style={{ paddingTop: '1rem' }}>
 					<motion.img
-						initial={{ originY: 0 }}
+						initial={{ originY: 1 }}
 						animate={{
-							x: mapPosX(thirdPageRatio, width ?? 1),
-							scale: firstImgScale(thirdPageRatio),
+							x: biggerThanMd ? firstImgX : 0,
+							y: 128 * thirdPageRatio,
+							scale: firstImgScale,
+							opacity: transform(
+								thirdPageRatio,
+								[0, 0.2, 0.9, 1],
+								[0, 1, 1, 0]
+							),
 						}}
 						style={{
-							marginRight: '1rem',
+							...(biggerThanMd
+								? { marginRight: '1rem' }
+								: { margin: '0 auto', display: 'block' }),
+							maxHeight: '61.8vh',
 						}}
+						transition={{ duration: 0.2 }}
 						{...screenshotProps(7)}
 					/>
 					<motion.img
-						initial={{ originY: 0 }}
 						animate={{
-							x: mapPosX(thirdPageRatio, width ?? 1, 64),
-							scale: secondImgScale(thirdPageRatio),
+							x: biggerThanMd ? secondImgX : 0,
+							y: 128 * thirdPageRatio,
+							scale: secondImgScale,
+							opacity: transform(
+								thirdPageRatio,
+								[0, 0.2, 0.9, 1],
+								[0, 1, 1, 0]
+							),
 						}}
 						style={{
-							marginLeft: '1rem',
+							...(biggerThanMd
+								? { marginLeft: '1rem' }
+								: { margin: '4rem auto', display: 'block' }),
+							maxHeight: '61.8vh',
 						}}
 						{...screenshotProps(6)}
 					/>
@@ -396,19 +446,29 @@ function ChildWindowOpener() {
 	)
 }
 
+const { Panel } = Collapse
+
 export function TroubleOnGettingStart() {
+	const biggerThanXs = useResponsive().sm
+
 	return (
-		<details style={{ paddingTop: '1rem' }}>
-			<summary>遇到问题吗？</summary>
-			已知在某些浏览器可能会把前缀
-			<code>javascript:</code>
-			去掉，请补上后粘贴
-			<br />
-			出于安全考虑，禁用 javascript url 的一些浏览器也无法使用
-			<br />
-			多数手机浏览器和新版 FireFox 有这个问题，换一台设备或一个浏览器就行了。
-			{/* TODO */}
-		</details>
+		<Collapse
+			bordered={false}
+			style={{
+				margin: biggerThanXs ? '1rem auto' : '1rem 2rem',
+				maxWidth: 512,
+			}}
+		>
+			<Panel header="遇到问题吗？" key="1">
+				已知在某些浏览器可能会把前缀
+				<code>javascript:</code>
+				去掉，请补上后粘贴
+				<br />
+				出于安全考虑，禁用 javascript url 的一些浏览器也无法使用
+				<br />
+				多数手机浏览器和新版 FireFox 有这个问题，换一台设备或一个浏览器就行了。
+			</Panel>
+		</Collapse>
 	)
 }
 
@@ -505,7 +565,7 @@ export function GettingStart() {
 						打开教务信息网，登陆后，在地址栏内输入这串代码
 						<br />
 						（建议使用电脑版的 Chrome 浏览器完成操作）
-						<br/>
+						<br />
 						<ChildWindowOpener />
 					</div>
 					<TroubleOnGettingStart />
@@ -676,8 +736,12 @@ export function ResultPage() {
 export function Footer() {
 	return (
 		<footer style={{ textAlign: 'center', lineHeight: 2, margin: '2rem 0' }}>
-			Copyright © 2008-2018
-			<a href="https://i.scnu.edu.cn/about/" target="_about">
+			Copyright © 2008-2020
+			<a
+				href="https://i.scnu.edu.cn/about/"
+				target="_about"
+				style={{ padding: '0 0.25rem' }}
+			>
 				ISCNU
 			</a>
 			. All rights Reserved.

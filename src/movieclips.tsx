@@ -56,27 +56,26 @@ export const FinishCircle = () => {
 	)
 }
 
-const scale = 1.3
+const scale = 1.1
 
-const marks = {
-	enterScreen: 0,
-	beginFirstPoint: 0.3,
-	beginFirstScale: 0.35,
+export const marks = {
+	enterScreen: 0.1,
+	beginFirstPoint: 0.2,
+	beginFirstScale: 0.3,
 	endFirstScale: 0.4,
 	endFirstPoint: 0.5,
-	beginSecondPoint: 0.55,
-	beginSecondScale: 0.6,
-	endSecondScale: 0.7,
-	endSecondPoint: 0.75,
+	beginSecondPoint: 0.6,
+	beginSecondScale: 0.7,
+	endSecondScale: 0.8,
+	endSecondPoint: 0.9,
 	exitScreen: 1,
 }
 
 export function mapPosX(
 	ratio: number,
 	width: number,
-	offset: number = 0
 ): number {
-	const enterPosX = width / 1.5
+	const enterPosX = width / 2
 	const FirstPosX = width / 8
 	const SecondPosX = -FirstPosX
 	const exitPosX = -enterPosX
@@ -107,11 +106,11 @@ export function mapPosX(
 			? SecondPosX
 			: ratio <= exitScreen
 			? transform(ratio, [endSecondPoint, exitScreen], [SecondPosX, exitPosX])
-			: exitPosX) + offset
+			: exitPosX) 
 	)
 }
 
-export function firstImgScale(ratio: number) {
+export function mapFirstImgScale(ratio: number) {
 	const {
 		beginFirstPoint,
 		beginFirstScale,
@@ -130,7 +129,7 @@ export function firstImgScale(ratio: number) {
 		: 1
 }
 
-export function secondImgScale(ratio: number) {
+export function mapSecondImgScale(ratio: number) {
 	const {
 		beginSecondPoint,
 		beginSecondScale,
