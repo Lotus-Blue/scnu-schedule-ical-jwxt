@@ -12,7 +12,7 @@
 
 `npm -v`
 
-如果有版本提升，则表明成功，若无可以考虑下要将`node.js`加入环境变量中
+如果有版本提示，则表明成功，若无可以考虑下要将`node.js`加入环境变量中
 
 ![检查](pictures\check.png)
 
@@ -41,7 +41,15 @@
 
 `git clone https://github.com/Lotus-Blue/scnu-schedule-ical-jwxt.git`
 
-(6)`cd`到该项目目录，执行
+(6)安装该项目所需要依赖
+
+`cd`到该项目目录，执行
+
+`npm install`
+
+执行后会自动安装`package.json`内的依赖,此过程有点慢，稍微等待
+
+(7)启动项目
 
 `npm start`
 
