@@ -4,8 +4,11 @@
 (2)`React.js`
 
 # 配置过程
+
 (1)在安装之前要确认你的机器上安装了[`node.js`](https://nodejs.org/zh-cn/)。如果没有安装，同学可以到 [`node.js`](https://nodejs.org/zh-cn/) 的官网下载自己电脑的对应的安装包来安装好环境。
+
 ![官网](pictures/node_js_official_website.png)
+
 --------
 (2)检测是否已安装好`node.js`
 在`cmd`中输入
