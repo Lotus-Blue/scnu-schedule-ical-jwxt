@@ -8,11 +8,11 @@
 
 ## 配置坏境和进行开发
 
-1) 在安装之前要确认你的机器上安装了[`node.js`](https://nodejs.org/zh-cn/)。如果没有安装，同学可以到 [`node.js`](https://nodejs.org/zh-cn/) 的官网下载自己电脑的对应的安装包来安装好环境。
+1. 在安装之前要确认你的机器上安装了[`node.js`](https://nodejs.org/zh-cn/)。如果没有安装，同学可以到 [`node.js`](https://nodejs.org/zh-cn/) 的官网下载自己电脑的对应的安装包来安装好环境。
 
    ![官网](README.assets/node_js_official_website.png)
 
-2) 检测是否已安装好`node.js`，在命令行中输入
+2. 检测是否已安装好`node.js`，在命令行中输入
 
    ```bash
    npm -v
@@ -22,13 +22,13 @@
 
    如果有版本提示，则表明成功，若无可以考虑下要将`node.js`加入环境变量中
 
-3) `clone`该项目
+3. `clone`该项目
 
    ```bash
    git clone git@github.com:iscnu/scnu-schedule-ical-jwxt.git
    ```
 
-4) 安装该项目所需要依赖
+4. 安装该项目所需要依赖
 
    `cd` 到该项目目录，执行
 
@@ -46,7 +46,7 @@
 
    执行后会自动安装 `package.json` 内的依赖,此过程有点慢，稍微等待
 
-5) 启动项目
+5. 启动项目
 
    ```bash
    npm start
@@ -56,11 +56,13 @@
 
    ![主页](README.assets/website_view.png)
 
+此外，我强烈推荐你安装 Prettier 这款 VSCode 格式化代码插件。
+
 ## 自己尝试开发 React App
 
-1) 检查 `npx` 命令能不能用，不能用请输入 `npm install -g npx` 安装
+1. 检查 `npx` 命令能不能用，不能用请输入 `npm install -g npx` 安装
 
-2) 创建 `react` 工程，安装所需依赖
+2. 创建 `react` 工程，安装所需依赖
 
    下面这条命令会自动在我们的计算机上安装 `create-react-app` ，然后运行构建 `react` 模板项目
 
