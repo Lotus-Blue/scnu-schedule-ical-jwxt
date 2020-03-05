@@ -2,9 +2,38 @@
 
 请安装好 Node.js 环境
 
-## 参考文档
+## 参考资料
 
-- [Create React App](https://create-react-app.dev)：构建打包 React App 项目
+基础：
+
+- [ECMAScript 6 入门教程](https://es6.ruanyifeng.com)
+
+  重点阅读前 10 章、Promise 与 async 和 Module 部分
+
+- React
+  - [React 中文文档](https://react.docschina.org)
+    - [JSX](https://react.docschina.org/docs/introducing-jsx.html)
+    - [Hooks](https://react.docschina.org/docs/hooks-intro.html)
+- Typescript
+  - [官方手册](https://www.typescriptlang.org/docs/home.html)
+  - [使用 TypeScript 编写 React](https://github.com/typescript-cheatsheets/react-typescript-cheatsheet)
+  - [中文文档](https://www.tslang.cn/docs/home.html)
+- [Create React App](https://create-react-app.dev) 构建打包 React App 项目
+
+常用到的库：
+
+- [Ant Design](https://ant.design/docs/react/introduce-cn) 蚂蚁前端库
+- [@umijs/hooks](https://hooks.umijs.org/zh-CN/hooks) 常用 hooks
+- [zustand](https://github.com/react-spring/zustand) 状态管理
+- [ical-generator](https://www.npmjs.com/package/ical-generator) 日历生成库
+- [framer motion](https://www.framer.com/api/) 动效库
+- [Fontawesome](https://fontawesome.com) 字体图标库
+
+原理：
+
+- [postMessage](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/postMessage) 实现数据爬取的核心原生 API
+
+部分链接建议魔法上网，学会适应阅读英文资料
 
 ## 配置坏境和进行开发
 
